@@ -138,7 +138,7 @@ namespace Business.Helpers
         public static int ToInt32(object input, int defaultValue)
         {
             int returnValue;
-            try { returnValue = int.Parse(input.ToString()); } catch { returnValue = 0; }
+            try { returnValue = int.Parse(input.ToString()); } catch { returnValue = defaultValue; }
             return returnValue;
         }
         /// <summary>

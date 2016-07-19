@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Business.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace MultipleCountdown
 {
     public partial class Countdown : Form
     {
-        int loggedInUser;
+        public int loggedInUser = 0;
         List<ucCountdown> countdownList;
         //BaseCountdown countdownValues;
 
@@ -23,6 +24,25 @@ namespace MultipleCountdown
             //cmbCountdownName.Items.AddRange(countdownValues.CountdownCounts.Select(q=>q.Title).ToArray<object>());
 
             tmrProgressState.Enabled = true;
+
+            //Get logged in user id
+            string encryptedId = RegistryHelper.ReadRegistryNode(RegistryHelper.MCNode_UserID);
+            if(string.IsNullOrEmpty(encryptedId) == false)
+            {
+                string decipheredId = string.Empty;
+                try
+                {
+                    decipheredId = EncryptionHelper.Decrypt(encryptedId);
+                }catch{}
+
+                if(string.IsNullOrEmpty(decipheredId) == false)
+                {
+                    loggedInUser = ParseHelper.ToInt32(decipheredId, 0);
+                }
+            }
+
+            //TODO: if the user is logged in, get saved countdowns of user
+            //TODO: change menu item (login) according to the user's logged in status
         }
 
         private void btnAddCountdown_Click(object sender, EventArgs e)
