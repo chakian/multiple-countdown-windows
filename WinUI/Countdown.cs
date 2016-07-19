@@ -10,6 +10,7 @@ namespace MultipleCountdown
 {
     public partial class Countdown : Form
     {
+        int loggedInUser;
         List<ucCountdown> countdownList;
         //BaseCountdown countdownValues;
 
