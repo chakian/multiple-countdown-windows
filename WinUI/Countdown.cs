@@ -1,4 +1,6 @@
-﻿using Business.Helpers;
+﻿using Business.DataOperations;
+using Business.Entities;
+using Business.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,17 +14,20 @@ namespace MultipleCountdown
     public partial class Countdown : Form
     {
         public int loggedInUser = 0;
+        public bool isLoggedIn
+        {
+            get
+            {
+                return loggedInUser > 0;
+            }
+        }
         List<ucCountdown> countdownList;
-        //BaseCountdown countdownValues;
 
         public Countdown()
         {
             InitializeComponent();
             countdownList = new List<ucCountdown>();
-
-            //countdownValues = new TornCountdown();
-            //cmbCountdownName.Items.AddRange(countdownValues.CountdownCounts.Select(q=>q.Title).ToArray<object>());
-
+            
             tmrProgressState.Enabled = true;
 
             //Get logged in user id
@@ -38,18 +43,104 @@ namespace MultipleCountdown
                 if(string.IsNullOrEmpty(decipheredId) == false)
                 {
                     loggedInUser = ParseHelper.ToInt32(decipheredId, 0);
+                    UserData userD = new UserData();
+                    User currentUser = userD.GetUserByID(loggedInUser);
+                    DoLogin(currentUser.ID, currentUser.Username);
                 }
             }
 
-            //TODO: if the user is logged in, get saved countdowns of user
-            //TODO: change menu item (login) according to the user's logged in status
+            //if the user is logged in, get saved countdowns of user
+            if (isLoggedIn)
+            {
+                CountdownData cdData = new CountdownData();
+                var cds = cdData.GetCountdownsOfUser(loggedInUser);
+                //TODO: Do something with these...
+            }
+            
+            //change menu items (login/logout) according to the user's logged in status
+            DoLoginLogoutOperations();
         }
+
+        private void loginToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LoginForm login = new LoginForm();
+            login.ShowDialog(this);
+        }
+
+        private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Do you really want to log out?", "Logout", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
+                DoLogout();
+        }
+        #region Login Logout operations
+        private void DoLoginLogoutOperations()
+        {
+            if (isLoggedIn)
+            {
+                loginToolStripMenuItem.Visible = false;
+                logoutToolStripMenuItem.Visible = true;
+            }
+            else
+            {
+                loginToolStripMenuItem.Visible = true;
+                logoutToolStripMenuItem.Visible = false;
+                mainToolStripMenuItem.Text = "User";
+            }
+        }
+
+        public bool DoLogin(string username, string password)
+        {
+            UserData userData = new UserData();
+
+            var user = userData.GetUserByUsernameAndPassword(username, password);
+            
+            if (user != null)
+            {
+                DoLogin(user.ID, user.Username);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public void DoLogin(int userID, string username)
+        {
+            loggedInUser = userID;
+            RegistryHelper.WriteRegistryNode(RegistryHelper.MCNode_UserID, EncryptionHelper.Encrypt(userID.ToString()));
+            mainToolStripMenuItem.Text = "User: " + username;
+            DoLoginLogoutOperations();
+        }
+
+        private void DoLogout()
+        {
+            loggedInUser = 0;
+            RegistryHelper.DeleteRegistryNode(RegistryHelper.MCNode_UserID);
+            DoLoginLogoutOperations();
+        }
+
+        public bool DoRegister(string username, string email, string password)
+        {
+            UserData userData = new UserData();
+
+            var user = userData.CreateNewUser(username, email, password);
+            if (user != null)
+            {
+                DoLogin(user.ID, user.Username);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        #endregion Login Logout operations
 
         private void btnAddCountdown_Click(object sender, EventArgs e)
         {
             ucCountdown uc = new ucCountdown(new BaseCountdownStructure() { Title = cmbCountdownName.Text, TotalSeconds = 0 });
             uc.ControlGuid = Guid.NewGuid();
-            //uc.CountdownEssentials = countdownValues.GetCountdownByTitle(cmbCountdownName.Text);
             
             countdownList.Add(uc);
             pnlCountdowns.Controls.Add(uc);

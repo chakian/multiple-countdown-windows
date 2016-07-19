@@ -42,5 +42,18 @@ namespace Business.Helpers
                 return regkey.GetValue(nodeName, "").ToString();
             }
         }
+        public static void DeleteRegistryNode(string nodeName)
+        {
+            RegistryKey regkey = Registry.CurrentUser.OpenSubKey("Software", true);
+            regkey = regkey.OpenSubKey(MCSubKey, true);
+            if (regkey == null)
+            {
+                CreateRegistryKey();
+            }
+            else
+            {
+                regkey.DeleteValue(nodeName, false);
+            }
+        }
     }
 }

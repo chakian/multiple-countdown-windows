@@ -6,23 +6,6 @@ namespace MultipleCountdown
 {
     public abstract class BaseCountdown
     {
-        //public List<BaseCountdownStructure> CountdownCounts;
-
-        //public abstract void FillDictionary();
-
-        //public BaseCountdownStructure GetCountdownByTitle(string title)
-        //{
-        //    var found = CountdownCounts.FirstOrDefault(q => q.Title == title);
-        //    if (found != null)
-        //        return found;
-        //    else return new BaseCountdownStructure() { Title = title, TotalSeconds = 0 };
-        //}
-
-        //public BaseCountdown()
-        //{
-        //    FillDictionary();
-        //}
-
         public BaseCountdownStructure GetBlankCountdown(string title)
         {
             return new BaseCountdownStructure() { Title = title, TotalSeconds = 0 };
