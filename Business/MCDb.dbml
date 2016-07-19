@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MultipleCountdown" Class="MCDbDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=.;Initial Catalog=MultipleCountdown;Persist Security Info=True;User ID=sa" SettingsObjectName="Business.Properties.Settings" SettingsPropertyName="MultipleCountdownConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.MC_Countdown" Member="MC_Countdowns">
+    <Type Name="MC_Countdown">
+      <Column Name="ID" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="UserID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Title" Type="System.String" DbType="NVarChar(150)" CanBeNull="true" />
+      <Column Name="EndTime" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="CreateTime" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="UpdateTime" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="IsInProgress" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="IsDeleted" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="MC_User_MC_Countdown" Member="MC_User" ThisKey="UserID" OtherKey="ID" Type="MC_User" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.MC_User" Member="MC_Users">
+    <Type Name="MC_User">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Username" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Password" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Email" Type="System.String" DbType="NVarChar(250) NOT NULL" CanBeNull="false" />
+      <Association Name="MC_User_MC_Countdown" Member="MC_Countdowns" ThisKey="ID" OtherKey="UserID" Type="MC_Countdown" />
+    </Type>
+  </Table>
+</Database>
