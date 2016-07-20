@@ -182,7 +182,7 @@ namespace MultipleCountdown
 
         private void btnAddCountdown_Click(object sender, EventArgs e)
         {
-            AddCountdown(cmbCountdownName.Text, 0);
+            AddCountdown(cmbCountdownName.Text, 0, true);
         }
 
         public void UserControlClosed(ucCountdown closedControl)
@@ -213,24 +213,27 @@ namespace MultipleCountdown
             }
         }
 
+        private bool IsSynchronizing = false;
         private void StartSynchronization()
         {
+            if (IsSynchronizing == false)
+            {
+                IsSynchronizing = true;
 
+                CountdownData cdata = new CountdownData();
+                var ListOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
+                var ListInDB = cdata.GetCountdownsOfUser(loggedInUser);
+
+                //var NewInDB = ListInDB - ListOnScreen;
+
+                IsSynchronizing = false;
+            }
         }
+        //public static List<BaseCountdownStructure> operator - (List<BaseCountdownStructure> list1, List<Business.Entities.Countdown> list2)
+        //{
+        //    List<BaseCountdownStructure> result = new List<BaseCountdownStructure>();
 
-        //private bool IsSynchronizing = false;
-        //async Task SynchronizeAsync()
-        //{
-        //    if (IsSynchronizing == false)
-        //    {
-        //        //TODO: Make this work
-        //        //var finished = await waitabit();
-        //    }
-        //}
-        //async private Task<int> waitabit()
-        //{
-        //    System.Threading.Thread.Sleep(5000);
-        //    return 5;
+        //    return result;
         //}
         #endregion Countdown User Control operations
 
