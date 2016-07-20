@@ -2,8 +2,9 @@
 
 namespace Business.Entities
 {
-    public class Countdown
+    public class CountdownStructure
     {
+        #region database properties
         public long ID { get; set; }
 
         public int UserID { get; set; }
@@ -21,6 +22,19 @@ namespace Business.Entities
         
         public bool IsDeleted { get; set; }
 
-        public DateTime EndTimeUTC { get; set; }
+        private DateTime _endTimeUTC;
+        public DateTime EndTimeUTC { get { return _endTimeUTC; } set { _endTimeUTC = value; TotalSeconds = (decimal)(EndTimeUTC - DateTime.UtcNow).TotalSeconds; } }
+        #endregion database properties
+
+        private decimal _totalSeconds;
+        
+        public decimal TotalSeconds { get { return _totalSeconds; } set { _totalSeconds = TickingSeconds = value; } }
+
+        public bool IsTicking { get; set; }
+        public decimal TickingSeconds { get; set; }
+        public decimal Days { get { return Math.Floor(TickingSeconds / 86400); } }
+        public decimal Hours { get { return Math.Floor((TickingSeconds - (Days * 86400)) / 3600); } }
+        public decimal Minutes { get { return Math.Floor((TickingSeconds - (Days * 86400) - (Hours * 3600)) / 60); } }
+        public decimal Seconds { get { return TickingSeconds - (Days * 86400) - (Hours * 3600) - (Minutes * 60); } }
     }
 }

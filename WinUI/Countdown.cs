@@ -161,7 +161,7 @@ namespace MultipleCountdown
 
         private void AddCountdown(string title, decimal totalSeconds, bool triggerSync)
         {
-            BaseCountdownStructure cdStruct = new BaseCountdownStructure()
+            CountdownStructure cdStruct = new CountdownStructure()
             {
                 Title = title,
                 TotalSeconds = totalSeconds
@@ -169,7 +169,7 @@ namespace MultipleCountdown
             AddCountdown(cdStruct, triggerSync);
         }
 
-        private void AddCountdown(BaseCountdownStructure cdStruct, bool triggerSync)
+        private void AddCountdown(CountdownStructure cdStruct, bool triggerSync)
         {
             ucCountdown uc = new ucCountdown(cdStruct);
             uc.ControlGuid = Guid.NewGuid();
@@ -224,17 +224,48 @@ namespace MultipleCountdown
                 var ListOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
                 var ListInDB = cdata.GetCountdownsOfUser(loggedInUser);
 
-                //var NewInDB = ListInDB - ListOnScreen;
+                var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListInDB, ListOnScreen);
+                var itemsNotInDB = getItemsThatDontExistInDB(ListOnScreen, ListInDB);
+
+                //place countdowns that didn't exist on screen into the window
+                foreach (var item in itemsNotOnScreen)
+                {
+                    AddCountdown(item, false);
+                }
+
+                //insert countdowns that didn't exist in db into database
+                foreach (var item in itemsNotInDB)
+                {
+                    cdata.InsertCountdown(item);
+                }
 
                 IsSynchronizing = false;
             }
         }
-        //public static List<BaseCountdownStructure> operator - (List<BaseCountdownStructure> list1, List<Business.Entities.Countdown> list2)
-        //{
-        //    List<BaseCountdownStructure> result = new List<BaseCountdownStructure>();
-
-        //    return result;
-        //}
+        private List<CountdownStructure> getItemsThatDontExistInDB (List<CountdownStructure> screen, List<CountdownStructure> db)
+        {
+            List<CountdownStructure> result = new List<CountdownStructure>();
+            foreach (var item in screen)
+            {
+                if (db.Any(q => q.Title == item.Title && Math.Abs(q.TotalSeconds - item.TotalSeconds) <= 5) == false)
+                {
+                    result.Add(item);
+                }
+            }
+            return result;
+        }
+        private List<CountdownStructure> getItemsThatDontExistOnScreen(List<CountdownStructure> db, List<CountdownStructure> screen)
+        {
+            List<CountdownStructure> result = new List<CountdownStructure>();
+            foreach (var item in db)
+            {
+                if (screen.Any(q => q.Title == item.Title && Math.Abs(q.TotalSeconds - item.TotalSeconds) <= 5) == false)
+                {
+                    result.Add(item);
+                }
+            }
+            return result;
+        }
         #endregion Countdown User Control operations
 
         private void tmrProgressState_Tick(object sender, EventArgs e)
@@ -243,7 +274,7 @@ namespace MultipleCountdown
             ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsTicking == true).OrderBy(q => q.CountdownEssentials.TickingSeconds).FirstOrDefault();
             if(earliestCountdown != null)
             {
-                BaseCountdownStructure _struct = earliestCountdown.CountdownEssentials;
+                CountdownStructure _struct = earliestCountdown.CountdownEssentials;
                 string _title = "";
                 if (_struct.Days > 0) _title += _struct.Days.ToString() + "d. ";
                 if (_struct.Hours > 0) _title += _struct.Hours.ToString() + "h. ";

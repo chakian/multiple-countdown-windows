@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.IO;
+using Business.Entities;
 
 namespace MultipleCountdown
 {
@@ -8,7 +9,7 @@ namespace MultipleCountdown
     {
         public Guid ControlGuid { get; set; }
 
-        public BaseCountdownStructure CountdownEssentials { get; set; }
+        public CountdownStructure CountdownEssentials { get; set; }
         
         public ucCountdown()
         {
@@ -17,7 +18,7 @@ namespace MultipleCountdown
             btnStartStop.Text = "Start";
             lblEndTime.Text = string.Empty;
         }
-        public ucCountdown(BaseCountdownStructure countdownEssentials)
+        public ucCountdown(CountdownStructure countdownEssentials)
             : this()
         {
             CountdownEssentials = countdownEssentials;

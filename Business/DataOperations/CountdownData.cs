@@ -8,9 +8,17 @@ namespace Business.DataOperations
 
     public class CountdownData : DataOpBase
     {
-        public List<Countdown> GetCountdownsOfUser(int userID)
+        public CountdownStructure InsertCountdown(CountdownStructure countdown)
         {
-            List<Countdown> result = new List<Countdown>();
+            MC_Countdown newCountdown = FromCountdown(countdown);
+            dataContext.MC_Countdowns.InsertOnSubmit(newCountdown);
+            dataContext.SubmitChanges();
+            return ToCountdown(newCountdown);
+        }
+
+        public List<CountdownStructure> GetCountdownsOfUser(int userID)
+        {
+            List<CountdownStructure> result = new List<CountdownStructure>();
             foreach (var item in GetActiveCountdowns())
             {
                 result.Add(ToCountdown(item));
@@ -29,9 +37,9 @@ namespace Business.DataOperations
             return dataContext.MC_Countdowns.AsEnumerable();
         }
 
-        private Countdown ToCountdown(MC_Countdown input)
+        private CountdownStructure ToCountdown(MC_Countdown input)
         {
-            Countdown output = new Countdown()
+            CountdownStructure output = new CountdownStructure()
             {
                 ID = input.ID,
                 UserID = input.UserID,
@@ -46,7 +54,7 @@ namespace Business.DataOperations
             return output;
         }
 
-        private MC_Countdown FromCountdown(Countdown input)
+        private MC_Countdown FromCountdown(CountdownStructure input)
         {
             MC_Countdown output = new MC_Countdown()
             {
