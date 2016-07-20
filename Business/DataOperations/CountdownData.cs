@@ -40,7 +40,8 @@ namespace Business.DataOperations
                 IsInProgress = input.IsInProgress,
                 CreateTime = input.CreateTime,
                 UpdateTime = input.UpdateTime,
-                IsDeleted = input.IsDeleted
+                IsDeleted = input.IsDeleted,
+                EndTimeUTC = input.EndTimeUTC
             };
             return output;
         }
@@ -56,7 +57,8 @@ namespace Business.DataOperations
                 IsInProgress = input.IsInProgress,
                 CreateTime = input.CreateTime,
                 UpdateTime = input.UpdateTime,
-                IsDeleted = input.IsDeleted
+                IsDeleted = input.IsDeleted,
+                EndTimeUTC = input.EndTimeUTC
             };
             return output;
         }

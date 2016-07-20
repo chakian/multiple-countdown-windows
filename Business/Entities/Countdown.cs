@@ -20,5 +20,7 @@ namespace Business.Entities
         public bool IsInProgress { get; set; }
         
         public bool IsDeleted { get; set; }
+
+        public DateTime EndTimeUTC { get; set; }
     }
 }

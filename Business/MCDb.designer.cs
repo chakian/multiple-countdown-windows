@@ -107,6 +107,8 @@ namespace Business
 		
 		private bool _IsDeleted;
 		
+		private System.DateTime _EndTimeUTC;
+		
 		private EntityRef<MC_User> _MC_User;
 		
     #region Extensibility Method Definitions
@@ -129,6 +131,8 @@ namespace Business
     partial void OnIsInProgressChanged();
     partial void OnIsDeletedChanging(bool value);
     partial void OnIsDeletedChanged();
+    partial void OnEndTimeUTCChanging(System.DateTime value);
+    partial void OnEndTimeUTCChanged();
     #endregion
 		
 		public MC_Countdown()
@@ -181,7 +185,7 @@ namespace Business
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Title", DbType="NVarChar(150)")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Title", DbType="NVarChar(150) NOT NULL", CanBeNull=false)]
 		public string Title
 		{
 			get
@@ -297,6 +301,26 @@ namespace Business
 					this._IsDeleted = value;
 					this.SendPropertyChanged("IsDeleted");
 					this.OnIsDeletedChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EndTimeUTC", DbType="DateTime NOT NULL")]
+		public System.DateTime EndTimeUTC
+		{
+			get
+			{
+				return this._EndTimeUTC;
+			}
+			set
+			{
+				if ((this._EndTimeUTC != value))
+				{
+					this.OnEndTimeUTCChanging(value);
+					this.SendPropertyChanging();
+					this._EndTimeUTC = value;
+					this.SendPropertyChanged("EndTimeUTC");
+					this.OnEndTimeUTCChanged();
 				}
 			}
 		}

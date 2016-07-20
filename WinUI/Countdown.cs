@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 //TODO: Learn how to use the taskbarprogress thing
 //using System.Windows.Shell;
@@ -54,25 +55,16 @@ namespace MultipleCountdown
             {
                 CountdownData cdData = new CountdownData();
                 var cds = cdData.GetCountdownsOfUser(loggedInUser);
-                //TODO: Do something with these...
+                foreach (var item in cds)
+                {
+                    AddCountdown(item.Title, item.EndTimeUTC);
+                }
             }
             
             //change menu items (login/logout) according to the user's logged in status
             DoLoginLogoutOperations();
         }
-
-        private void loginToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            LoginForm login = new LoginForm();
-            login.ShowDialog(this);
-        }
-
-        private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DialogResult result = MessageBox.Show("Do you really want to log out?", "Logout", MessageBoxButtons.YesNo);
-            if (result == DialogResult.Yes)
-                DoLogout();
-        }
+        
         #region Login Logout operations
         private void DoLoginLogoutOperations()
         {
@@ -135,16 +127,62 @@ namespace MultipleCountdown
                 return false;
             }
         }
+
+        private void loginToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LoginForm login = new LoginForm();
+            login.ShowDialog(this);
+        }
+
+        private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Do you really want to log out?", "Logout", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
+                DoLogout();
+        }
         #endregion Login Logout operations
 
-        private void btnAddCountdown_Click(object sender, EventArgs e)
+        #region Countdown User Control operations
+        private void AddCountdown(string title, DateTime endTimeUTC)
         {
-            ucCountdown uc = new ucCountdown(new BaseCountdownStructure() { Title = cmbCountdownName.Text, TotalSeconds = 0 });
+            AddCountdown(title, endTimeUTC, false);
+        }
+
+        private void AddCountdown(string title, DateTime endTimeUTC, bool triggerSync)
+        {
+            decimal totalSeconds = (decimal)(endTimeUTC - DateTime.UtcNow).TotalSeconds;
+            AddCountdown(title, totalSeconds, triggerSync);
+        }
+
+        private void AddCountdown(string title, decimal totalSeconds)
+        {
+            AddCountdown(title, totalSeconds, false);
+        }
+
+        private void AddCountdown(string title, decimal totalSeconds, bool triggerSync)
+        {
+            BaseCountdownStructure cdStruct = new BaseCountdownStructure()
+            {
+                Title = title,
+                TotalSeconds = totalSeconds
+            };
+            AddCountdown(cdStruct, triggerSync);
+        }
+
+        private void AddCountdown(BaseCountdownStructure cdStruct, bool triggerSync)
+        {
+            ucCountdown uc = new ucCountdown(cdStruct);
             uc.ControlGuid = Guid.NewGuid();
-            
+
             countdownList.Add(uc);
             pnlCountdowns.Controls.Add(uc);
             rearrangeControls();
+            StartSynchronization();
+        }
+
+        private void btnAddCountdown_Click(object sender, EventArgs e)
+        {
+            AddCountdown(cmbCountdownName.Text, 0);
         }
 
         public void UserControlClosed(ucCountdown closedControl)
@@ -175,6 +213,27 @@ namespace MultipleCountdown
             }
         }
 
+        private void StartSynchronization()
+        {
+
+        }
+
+        //private bool IsSynchronizing = false;
+        //async Task SynchronizeAsync()
+        //{
+        //    if (IsSynchronizing == false)
+        //    {
+        //        //TODO: Make this work
+        //        //var finished = await waitabit();
+        //    }
+        //}
+        //async private Task<int> waitabit()
+        //{
+        //    System.Threading.Thread.Sleep(5000);
+        //    return 5;
+        //}
+        #endregion Countdown User Control operations
+
         private void tmrProgressState_Tick(object sender, EventArgs e)
         {
             //get earliest countdown
@@ -197,6 +256,11 @@ namespace MultipleCountdown
             //Taskbar.ProgressBar
             //this.
             //System.Windows.Forms.VisualStyles.VisualStyleElement.Taskbar taskbar = this.task
+        }
+
+        private void synchronizeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StartSynchronization();
         }
     }
 
