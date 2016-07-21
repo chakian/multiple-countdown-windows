@@ -7,8 +7,6 @@ namespace MultipleCountdown
 {
     public partial class ucCountdown : UserControl
     {
-        public Guid ControlGuid { get; set; }
-
         public CountdownStructure CountdownEssentials { get; set; }
         
         public ucCountdown()
@@ -24,14 +22,23 @@ namespace MultipleCountdown
             CountdownEssentials = countdownEssentials;
             SetTextBoxValuesFromSeconds();
             lblTitle.Text = CountdownEssentials.Title;
+            InitializeCountdown();
+        }
+
+        void InitializeCountdown()
+        {
+            if (CountdownEssentials.IsInProgress)
+            {
+                startTimer();
+            }
         }
 
         private void SetTextBoxValuesFromSeconds()
         {
-            decimal Days = CountdownEssentials.Days;
-            decimal Hours = CountdownEssentials.Hours;
-            decimal Minutes = CountdownEssentials.Minutes;
-            decimal Seconds = CountdownEssentials.Seconds;
+            double Days = CountdownEssentials.Days;
+            double Hours = CountdownEssentials.Hours;
+            double Minutes = CountdownEssentials.Minutes;
+            double Seconds = CountdownEssentials.Seconds;
 
             if (Days == 0) tbDay.Text = string.Empty;
             else tbDay.Text = Days.ToString();
@@ -46,19 +53,20 @@ namespace MultipleCountdown
             else tbSecond.Text = Seconds.ToString();
         }
 
-        private decimal GetSecondsFromTextBoxes()
+        private double GetSecondsFromTextBoxes()
         {
-            decimal day, hour, minute, second;
-            if (decimal.TryParse(tbDay.Text.Trim(), out day) == false) day = 0;
-            if (decimal.TryParse(tbHour.Text.Trim(), out hour) == false) hour = 0;
-            if (decimal.TryParse(tbMinute.Text.Trim(), out minute) == false) minute = 0;
-            if (decimal.TryParse(tbSecond.Text.Trim(), out second) == false) second = 0;
+            double day, hour, minute, second;
+            if (double.TryParse(tbDay.Text.Trim(), out day) == false) day = 0;
+            if (double.TryParse(tbHour.Text.Trim(), out hour) == false) hour = 0;
+            if (double.TryParse(tbMinute.Text.Trim(), out minute) == false) minute = 0;
+            if (double.TryParse(tbSecond.Text.Trim(), out second) == false) second = 0;
             return (day * 24 * 60 * 60) + (hour * 60 * 60) + (minute * 60) + (second);
         }
 
         private void btnStartStop_Click(object sender, EventArgs e)
         {
             switchTimer();
+            startSyncInParent();
         }
 
         private void toggleTextboxEditable(bool editable)
@@ -69,33 +77,41 @@ namespace MultipleCountdown
             tbSecond.Enabled = editable;
         }
 
+        void startTimer()
+        {
+            CountdownEssentials.IsInProgress = true;
+            CountdownEssentials.SetTotalSeconds(GetSecondsFromTextBoxes());
+            timer1.Enabled = true;
+            btnStartStop.Text = "Stop";
+            lblEndTime.Text = string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"));
+            toggleTextboxEditable(false);
+        }
+        void stopTimer()
+        {
+            CountdownEssentials.IsInProgress = false;
+            timer1.Enabled = false;
+            btnStartStop.Text = "Start";
+            lblEndTime.Text = string.Empty;
+            toggleTextboxEditable(true);
+        }
+
         void switchTimer()
         {
             if (timer1.Enabled)
             {
-                //stop
-                CountdownEssentials.IsTicking = false;
-                timer1.Enabled = false;
-                btnStartStop.Text = "Start";
-                lblEndTime.Text = string.Empty;
-                toggleTextboxEditable(true);
+                stopTimer();
             }
             else
             {
-                //start
-                CountdownEssentials.IsTicking = true;
-                CountdownEssentials.TotalSeconds = GetSecondsFromTextBoxes();
-                timer1.Enabled = true;
-                btnStartStop.Text = "Stop";
-                DateTime endTime = DateTime.Now.AddSeconds((double)CountdownEssentials.TotalSeconds);
-                lblEndTime.Text = string.Format("End Time: {0}", endTime.ToString("dd/MM/yyyy HH:mm:ss"));
-                toggleTextboxEditable(false);
+                startTimer();
             }
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
             ((Countdown)Parent.Parent).UserControlClosed(this);
+
+            startSyncInParent();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -128,6 +144,15 @@ namespace MultipleCountdown
                 alert.Left = 0;
                 alert.TopMost = true;
                 alert.ShowDialog();
+            }
+        }
+
+        void startSyncInParent()
+        {
+            //trigger synchronization
+            if (Parent != null && Parent.Parent != null)
+            {
+                ((Countdown)Parent.Parent).StartSynchronization();
             }
         }
     }

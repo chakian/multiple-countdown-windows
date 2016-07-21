@@ -47,8 +47,7 @@
     <Compile Include="DataOperations\CountdownData.cs" />
     <Compile Include="DataOperations\DataOpBase.cs" />
     <Compile Include="DataOperations\UserData.cs" />
-    <Compile Include="Entities\BaseCountdown.cs" />
-    <Compile Include="Entities\Countdown.cs" />
+    <Compile Include="Entities\CountdownStructure.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\RegistryHelper.cs" />

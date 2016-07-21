@@ -5,7 +5,7 @@ namespace Business.DataOperations
 {
     using Entities;
     using Helpers;
-
+    using System;
     public class CountdownData : DataOpBase
     {
         public CountdownStructure InsertCountdown(CountdownStructure countdown)
@@ -19,11 +19,22 @@ namespace Business.DataOperations
         public List<CountdownStructure> GetCountdownsOfUser(int userID)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in GetActiveCountdowns())
+            foreach (var item in GetOngoingCountdowns())
             {
                 result.Add(ToCountdown(item));
             }
             return result;
+        }
+
+        private IEnumerable<MC_Countdown> GetOngoingCountdowns()
+        {
+            var ongoingCountdowns = GetActiveCountdowns().Where(q => q.EndTimeUtc > DateTime.UtcNow);
+            return ongoingCountdowns;
+        }
+        private IEnumerable<MC_Countdown> GetOldCountdowns()
+        {
+            var oldCountdowns = GetActiveCountdowns().Where(q => q.EndTimeUtc <= DateTime.UtcNow);
+            return oldCountdowns;
         }
 
         private IEnumerable<MC_Countdown> GetActiveCountdowns()
@@ -39,17 +50,14 @@ namespace Business.DataOperations
 
         private CountdownStructure ToCountdown(MC_Countdown input)
         {
-            CountdownStructure output = new CountdownStructure()
+            CountdownStructure output = new CountdownStructure(input.Title, input.EndTimeUtc)
             {
                 ID = input.ID,
                 UserID = input.UserID,
-                Title = input.Title,
-                EndTime = input.EndTime,
+                CountdownGuid = input.CountdownGuid,
                 IsInProgress = input.IsInProgress,
-                CreateTime = input.CreateTime,
-                UpdateTime = input.UpdateTime,
                 IsDeleted = input.IsDeleted,
-                EndTimeUTC = input.EndTimeUTC
+                UpdateTimeUtc = input.UpdateTimeUtc
             };
             return output;
         }
@@ -60,13 +68,12 @@ namespace Business.DataOperations
             {
                 ID = input.ID,
                 UserID = input.UserID,
+                CountdownGuid = input.CountdownGuid,
                 Title = input.Title,
-                EndTime = input.EndTime,
+                EndTimeUtc = input.EndTimeUtc,
                 IsInProgress = input.IsInProgress,
-                CreateTime = input.CreateTime,
-                UpdateTime = input.UpdateTime,
                 IsDeleted = input.IsDeleted,
-                EndTimeUTC = input.EndTimeUTC
+                UpdateTimeUtc = input.UpdateTimeUtc
             };
             return output;
         }

@@ -14,12 +14,24 @@ namespace MultipleCountdown
 {
     public partial class Countdown : Form
     {
-        public int loggedInUser = 0;
+        private int _loggedInUser = 0;
+        public int LoggedInUser
+        {
+            get
+            {
+                return _loggedInUser;
+            }
+            set
+            {
+                _loggedInUser = value;
+                countdownList.ForEach(q => q.CountdownEssentials.UserID = _loggedInUser);
+            }
+        }
         public bool isLoggedIn
         {
             get
             {
-                return loggedInUser > 0;
+                return LoggedInUser > 0;
             }
         }
         List<ucCountdown> countdownList;
@@ -43,23 +55,23 @@ namespace MultipleCountdown
 
                 if(string.IsNullOrEmpty(decipheredId) == false)
                 {
-                    loggedInUser = ParseHelper.ToInt32(decipheredId, 0);
+                    LoggedInUser = ParseHelper.ToInt32(decipheredId, 0);
                     UserData userD = new UserData();
-                    User currentUser = userD.GetUserByID(loggedInUser);
+                    User currentUser = userD.GetUserByID(LoggedInUser);
                     DoLogin(currentUser.ID, currentUser.Username);
                 }
             }
 
             //if the user is logged in, get saved countdowns of user
-            if (isLoggedIn)
-            {
-                CountdownData cdData = new CountdownData();
-                var cds = cdData.GetCountdownsOfUser(loggedInUser);
-                foreach (var item in cds)
-                {
-                    AddCountdown(item.Title, item.EndTimeUTC);
-                }
-            }
+            //if (isLoggedIn)
+            //{
+            //    CountdownData cdData = new CountdownData();
+            //    var cds = cdData.GetCountdownsOfUser(loggedInUser);
+            //    foreach (var item in cds)
+            //    {
+            //        AddCountdown(item.Title, item.EndTimeUTC);
+            //    }
+            //}
             
             //change menu items (login/logout) according to the user's logged in status
             DoLoginLogoutOperations();
@@ -99,15 +111,16 @@ namespace MultipleCountdown
         }
         public void DoLogin(int userID, string username)
         {
-            loggedInUser = userID;
+            LoggedInUser = userID;
             RegistryHelper.WriteRegistryNode(RegistryHelper.MCNode_UserID, EncryptionHelper.Encrypt(userID.ToString()));
             mainToolStripMenuItem.Text = "User: " + username;
+            StartSynchronization();
             DoLoginLogoutOperations();
         }
 
         private void DoLogout()
         {
-            loggedInUser = 0;
+            LoggedInUser = 0;
             RegistryHelper.DeleteRegistryNode(RegistryHelper.MCNode_UserID);
             DoLoginLogoutOperations();
         }
@@ -143,52 +156,42 @@ namespace MultipleCountdown
         #endregion Login Logout operations
 
         #region Countdown User Control operations
-        private void AddCountdown(string title, DateTime endTimeUTC)
+        private void AddCountdown(string title, DateTime endTimeUtc)
         {
-            AddCountdown(title, endTimeUTC, false);
+            CountdownStructure cdStruct = new CountdownStructure(title, endTimeUtc);
+            AddCountdown(cdStruct);
+        }
+        
+        private void AddCountdown(string title, double totalSeconds)
+        {
+            CountdownStructure cdStruct = new CountdownStructure(title, totalSeconds);
+            AddCountdown(cdStruct);
         }
 
-        private void AddCountdown(string title, DateTime endTimeUTC, bool triggerSync)
+        private void AddCountdown(CountdownStructure cdStruct)
         {
-            decimal totalSeconds = (decimal)(endTimeUTC - DateTime.UtcNow).TotalSeconds;
-            AddCountdown(title, totalSeconds, triggerSync);
-        }
-
-        private void AddCountdown(string title, decimal totalSeconds)
-        {
-            AddCountdown(title, totalSeconds, false);
-        }
-
-        private void AddCountdown(string title, decimal totalSeconds, bool triggerSync)
-        {
-            CountdownStructure cdStruct = new CountdownStructure()
+            cdStruct.UserID = LoggedInUser;
+            if (string.IsNullOrEmpty(cdStruct.CountdownGuid))
             {
-                Title = title,
-                TotalSeconds = totalSeconds
-            };
-            AddCountdown(cdStruct, triggerSync);
-        }
+                cdStruct.CountdownGuid = Guid.NewGuid().ToString();
+            }
 
-        private void AddCountdown(CountdownStructure cdStruct, bool triggerSync)
-        {
             ucCountdown uc = new ucCountdown(cdStruct);
-            uc.ControlGuid = Guid.NewGuid();
 
             countdownList.Add(uc);
             pnlCountdowns.Controls.Add(uc);
             rearrangeControls();
-            StartSynchronization();
         }
 
         private void btnAddCountdown_Click(object sender, EventArgs e)
         {
-            AddCountdown(cmbCountdownName.Text, 0, true);
+            AddCountdown(cmbCountdownName.Text, 0);
         }
 
         public void UserControlClosed(ucCountdown closedControl)
         {
             closedControl.Dispose();
-            var wanted = countdownList.FirstOrDefault(q => q.ControlGuid == closedControl.ControlGuid);
+            var wanted = countdownList.FirstOrDefault(q => q.CountdownEssentials.CountdownGuid == closedControl.CountdownEssentials.CountdownGuid);
             if (wanted != null)
             {
                 countdownList.Remove(wanted);
@@ -214,32 +217,68 @@ namespace MultipleCountdown
         }
 
         private bool IsSynchronizing = false;
-        private void StartSynchronization()
+        private DateTime LastSynchronizeTime = DateTime.Now;
+        private int SynchronizeIntervalInSeconds = 20;
+        public void StartSynchronization()
         {
             if (IsSynchronizing == false)
             {
                 IsSynchronizing = true;
 
-                CountdownData cdata = new CountdownData();
-                var ListOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
-                var ListInDB = cdata.GetCountdownsOfUser(loggedInUser);
-
-                var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListInDB, ListOnScreen);
-                var itemsNotInDB = getItemsThatDontExistInDB(ListOnScreen, ListInDB);
-
-                //place countdowns that didn't exist on screen into the window
-                foreach (var item in itemsNotOnScreen)
+                try
                 {
-                    AddCountdown(item, false);
-                }
+                    CountdownData cdata = new CountdownData();
+                    List<CountdownStructure> ListOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
+                    List<CountdownStructure> ListInDB = cdata.GetCountdownsOfUser(LoggedInUser).ToList();
+                    RemoveEqualEntriesFromLists(ListOnScreen, ListInDB);
 
-                //insert countdowns that didn't exist in db into database
-                foreach (var item in itemsNotInDB)
+                    //TODO: Tidy up this part... It is getting messy.
+                    var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListInDB, ListOnScreen);
+                    var itemsNotInDB = getItemsThatDontExistInDB(ListOnScreen, ListInDB);
+                    //var itemsNotUpToDateOnScreen;
+                    //var itemsNotUpToDateInDB;
+
+                    //place countdowns that didn't exist on screen into the window
+                    foreach (var item in itemsNotOnScreen)
+                    {
+                        AddCountdown(item);
+                    }
+
+                    //insert countdowns that didn't exist in db into database
+                    foreach (var item in itemsNotInDB)
+                    {
+                        cdata.InsertCountdown(item);
+                    }
+                }
+                catch(Exception ex)
                 {
-                    cdata.InsertCountdown(item);
+                    //TODO: Log
                 }
+                finally
+                {
+                    IsSynchronizing = false;
+                    LastSynchronizeTime = DateTime.Now;
+                }
+            }
+        }
+        void RemoveEqualEntriesFromLists(List<CountdownStructure> ListOnScreen, List<CountdownStructure> ListInDB)
+        {
+            var tempScreen = ListOnScreen.ToList();
+            var tempDB = ListInDB.ToList();
 
-                IsSynchronizing = false;
+            foreach (var item in tempScreen.ToList())
+            {
+                if (tempDB.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
+                {
+                    ListOnScreen.Remove(item);
+                }
+            }
+            foreach (var item in tempDB.ToList())
+            {
+                if (tempScreen.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
+                {
+                    ListInDB.Remove(item);
+                }
             }
         }
         private List<CountdownStructure> getItemsThatDontExistInDB (List<CountdownStructure> screen, List<CountdownStructure> db)
@@ -247,7 +286,7 @@ namespace MultipleCountdown
             List<CountdownStructure> result = new List<CountdownStructure>();
             foreach (var item in screen)
             {
-                if (db.Any(q => q.Title == item.Title && Math.Abs(q.TotalSeconds - item.TotalSeconds) <= 5) == false)
+                if (db.Any(q => (q.Compare(item) == CountdownStructure.EqualityStatus.Equal)) == false)
                 {
                     result.Add(item);
                 }
@@ -259,7 +298,7 @@ namespace MultipleCountdown
             List<CountdownStructure> result = new List<CountdownStructure>();
             foreach (var item in db)
             {
-                if (screen.Any(q => q.Title == item.Title && Math.Abs(q.TotalSeconds - item.TotalSeconds) <= 5) == false)
+                if (screen.Any(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
                 {
                     result.Add(item);
                 }
@@ -271,7 +310,7 @@ namespace MultipleCountdown
         private void tmrProgressState_Tick(object sender, EventArgs e)
         {
             //get earliest countdown
-            ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsTicking == true).OrderBy(q => q.CountdownEssentials.TickingSeconds).FirstOrDefault();
+            ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsInProgress == true).OrderBy(q => q.CountdownEssentials.TickingSeconds).FirstOrDefault();
             if(earliestCountdown != null)
             {
                 CountdownStructure _struct = earliestCountdown.CountdownEssentials;
@@ -285,6 +324,12 @@ namespace MultipleCountdown
             else
             {
                 this.Text += "";
+            }
+
+            //synchronize data
+            if((DateTime.Now - LastSynchronizeTime).TotalSeconds >= SynchronizeIntervalInSeconds)
+            {
+                StartSynchronization();
             }
             
             //Taskbar.ProgressBar
