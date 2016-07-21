@@ -52,6 +52,7 @@
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\RegistryHelper.cs" />
     <Compile Include="Helpers\ParseHelper.cs" />
+    <Compile Include="LogicalOperations\CountdownSynchronization.cs" />
     <Compile Include="MCDb.designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

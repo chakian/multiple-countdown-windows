@@ -1,6 +1,7 @@
 ﻿using Business.DataOperations;
 using Business.Entities;
 using Business.Helpers;
+using Business.LogicalOperations;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -194,6 +195,8 @@ namespace MultipleCountdown
             var wanted = countdownList.FirstOrDefault(q => q.CountdownEssentials.CountdownGuid == closedControl.CountdownEssentials.CountdownGuid);
             if (wanted != null)
             {
+                CountdownData cdata = new CountdownData();
+                cdata.DeleteCountdown(wanted.CountdownEssentials);
                 countdownList.Remove(wanted);
             }
             rearrangeControls();
@@ -218,36 +221,37 @@ namespace MultipleCountdown
 
         private bool IsSynchronizing = false;
         private DateTime LastSynchronizeTime = DateTime.Now;
-        private int SynchronizeIntervalInSeconds = 20;
+        private int SynchronizeIntervalInSeconds = 1 * 60; //per minute
         public void StartSynchronization()
         {
-            if (IsSynchronizing == false)
+            if (IsSynchronizing == false && isLoggedIn)
             {
                 IsSynchronizing = true;
 
                 try
                 {
-                    CountdownData cdata = new CountdownData();
-                    List<CountdownStructure> ListOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
-                    List<CountdownStructure> ListInDB = cdata.GetCountdownsOfUser(LoggedInUser).ToList();
-                    RemoveEqualEntriesFromLists(ListOnScreen, ListInDB);
+                    List<CountdownStructure> listOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
+                    List<CountdownStructure> newListForScreen = CountdownSynchronization.Synchronize(listOnScreen, LoggedInUser);
 
-                    //TODO: Tidy up this part... It is getting messy.
-                    var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListInDB, ListOnScreen);
-                    var itemsNotInDB = getItemsThatDontExistInDB(ListOnScreen, ListInDB);
-                    //var itemsNotUpToDateOnScreen;
-                    //var itemsNotUpToDateInDB;
-
-                    //place countdowns that didn't exist on screen into the window
-                    foreach (var item in itemsNotOnScreen)
+                    foreach (var item in newListForScreen)
                     {
-                        AddCountdown(item);
-                    }
-
-                    //insert countdowns that didn't exist in db into database
-                    foreach (var item in itemsNotInDB)
-                    {
-                        cdata.InsertCountdown(item);
+                        var onscreen = listOnScreen.SingleOrDefault(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid);
+                        if(onscreen == null)
+                        {
+                            AddCountdown(item);
+                        }
+                        else
+                        {
+                            var compareStatus = onscreen.Compare(item);
+                            if(compareStatus == CountdownStructure.EqualityStatus.SecondIsNew)
+                            {
+                                var ucToUpdate = countdownList.SingleOrDefault(q => q.CountdownEssentials.Title == item.Title && q.CountdownEssentials.CountdownGuid == item.CountdownGuid);
+                                if(ucToUpdate != null)
+                                {
+                                    ucToUpdate.SetCountdownEssentials(item);
+                                }
+                            }
+                        }
                     }
                 }
                 catch(Exception ex)
@@ -260,50 +264,6 @@ namespace MultipleCountdown
                     LastSynchronizeTime = DateTime.Now;
                 }
             }
-        }
-        void RemoveEqualEntriesFromLists(List<CountdownStructure> ListOnScreen, List<CountdownStructure> ListInDB)
-        {
-            var tempScreen = ListOnScreen.ToList();
-            var tempDB = ListInDB.ToList();
-
-            foreach (var item in tempScreen.ToList())
-            {
-                if (tempDB.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
-                {
-                    ListOnScreen.Remove(item);
-                }
-            }
-            foreach (var item in tempDB.ToList())
-            {
-                if (tempScreen.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
-                {
-                    ListInDB.Remove(item);
-                }
-            }
-        }
-        private List<CountdownStructure> getItemsThatDontExistInDB (List<CountdownStructure> screen, List<CountdownStructure> db)
-        {
-            List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in screen)
-            {
-                if (db.Any(q => (q.Compare(item) == CountdownStructure.EqualityStatus.Equal)) == false)
-                {
-                    result.Add(item);
-                }
-            }
-            return result;
-        }
-        private List<CountdownStructure> getItemsThatDontExistOnScreen(List<CountdownStructure> db, List<CountdownStructure> screen)
-        {
-            List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in db)
-            {
-                if (screen.Any(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
-                {
-                    result.Add(item);
-                }
-            }
-            return result;
         }
         #endregion Countdown User Control operations
 

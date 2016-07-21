@@ -15,6 +15,32 @@ namespace Business.DataOperations
             dataContext.SubmitChanges();
             return ToCountdown(newCountdown);
         }
+        public void UpdateCountdown(CountdownStructure countdown)
+        {
+            MC_Countdown newCountdown = GetCountdownByUniqueInfo(countdown.UserID, countdown.Title, countdown.CountdownGuid);
+            if(newCountdown != null)
+            {
+                newCountdown.IsInProgress = countdown.IsInProgress;
+                newCountdown.IsDeleted= countdown.IsDeleted;
+                newCountdown.EndTimeUtc = countdown.EndTimeUtc;
+                dataContext.SubmitChanges();
+            }
+        }
+        public void DeleteCountdown(CountdownStructure cd)
+        {
+            MC_Countdown countdown = GetCountdownByUniqueInfo(cd.UserID, cd.Title, cd.CountdownGuid);
+            if (countdown != null)
+            {
+                dataContext.MC_Countdowns.DeleteOnSubmit(countdown);
+                dataContext.SubmitChanges();
+            }
+        }
+
+        //private CountdownStructure GetCountdownByUniqueInfo(int userID, string title, string guid)
+        //{
+        //    var countdown = GetCountdownsOfUser(userID).SingleOrDefault(q => q.Title == title && q.CountdownGuid == guid);
+        //    return countdown;
+        //}
 
         public List<CountdownStructure> GetCountdownsOfUser(int userID)
         {
@@ -24,6 +50,12 @@ namespace Business.DataOperations
                 result.Add(ToCountdown(item));
             }
             return result;
+        }
+
+        private MC_Countdown GetCountdownByUniqueInfo(int userID, string title, string guid)
+        {
+            var countdown = GetOngoingCountdowns().SingleOrDefault(q => q.UserID == userID && q.Title == title && q.CountdownGuid == guid);
+            return countdown;
         }
 
         private IEnumerable<MC_Countdown> GetOngoingCountdowns()

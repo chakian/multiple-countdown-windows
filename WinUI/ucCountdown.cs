@@ -7,7 +7,12 @@ namespace MultipleCountdown
 {
     public partial class ucCountdown : UserControl
     {
-        public CountdownStructure CountdownEssentials { get; set; }
+        public CountdownStructure CountdownEssentials { get; private set; }
+        public void SetCountdownEssentials(CountdownStructure cd)
+        {
+            CountdownEssentials = cd;
+            InitializeCountdown();
+        }
         
         public ucCountdown()
         {
@@ -109,6 +114,8 @@ namespace MultipleCountdown
 
         private void btnClose_Click(object sender, EventArgs e)
         {
+            CountdownEssentials.IsDeleted = true;
+
             ((Countdown)Parent.Parent).UserControlClosed(this);
 
             startSyncInParent();
@@ -149,6 +156,7 @@ namespace MultipleCountdown
 
         void startSyncInParent()
         {
+            CountdownEssentials.UpdateTimeUtc = DateTime.UtcNow;
             //trigger synchronization
             if (Parent != null && Parent.Parent != null)
             {
