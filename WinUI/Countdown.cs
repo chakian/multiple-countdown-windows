@@ -191,13 +191,21 @@ namespace MultipleCountdown
 
         public void UserControlClosed(ucCountdown closedControl)
         {
-            closedControl.Dispose();
             var wanted = countdownList.FirstOrDefault(q => q.CountdownEssentials.CountdownGuid == closedControl.CountdownEssentials.CountdownGuid);
+            if (wanted != null)
+            {
+                countdownList.Remove(wanted);
+            }
+            RemoveCountdownFromScreen(closedControl);
+        }
+        void RemoveCountdownFromScreen(ucCountdown closedControl)
+        {
+            var wanted = countdownList.FirstOrDefault(q => q.CountdownEssentials.CountdownGuid == closedControl.CountdownEssentials.CountdownGuid);
+            closedControl.Dispose();
             if (wanted != null)
             {
                 CountdownData cdata = new CountdownData();
                 cdata.DeleteCountdown(wanted.CountdownEssentials);
-                countdownList.Remove(wanted);
             }
             rearrangeControls();
         }
@@ -233,6 +241,16 @@ namespace MultipleCountdown
                     List<CountdownStructure> listOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
                     List<CountdownStructure> newListForScreen = CountdownSynchronization.Synchronize(listOnScreen, LoggedInUser);
 
+                    //removed countdowns are removed from screen as well
+                    foreach (var item in listOnScreen.ToList())
+                    {
+                        if(newListForScreen.Any(q=>q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
+                        {
+                            listOnScreen.Remove(item);
+                        }
+                    }
+
+                    //newly added and updated countdowns are updated on screen
                     foreach (var item in newListForScreen)
                     {
                         var onscreen = listOnScreen.SingleOrDefault(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid);
@@ -254,7 +272,7 @@ namespace MultipleCountdown
                         }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     //TODO: Log
                 }

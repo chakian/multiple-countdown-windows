@@ -7,14 +7,15 @@ namespace Business.LogicalOperations
 {
     public static class CountdownSynchronization
     {
-        public static List<CountdownStructure> Synchronize(List<CountdownStructure> ListOnScreen, int loggedInUser)
+        public static List<CountdownStructure> Synchronize(List<CountdownStructure> listOnScreen, int loggedInUser)
         {
-            List<CountdownStructure> newListForScreen = new List<CountdownStructure>();
+            List<CountdownStructure> newListForScreen;
 
             CountdownData cdata = new CountdownData();
             List<CountdownStructure> ListInDB = cdata.GetCountdownsOfUser(loggedInUser).ToList();
+            List<CountdownStructure> ListOnScreen = listOnScreen.ToList();
 
-            RemoveEqualEntriesFromLists(ListOnScreen, ListInDB);
+            RemoveEqualEntriesFromLists(ListOnScreen, ListInDB, out newListForScreen);
 
             //TODO: Tidy up this part... It is getting messy.
             var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListOnScreen, ListInDB);
@@ -47,8 +48,9 @@ namespace Business.LogicalOperations
             return newListForScreen;
         }
 
-        static void RemoveEqualEntriesFromLists(List<CountdownStructure> ListOnScreen, List<CountdownStructure> ListInDB)
+        static void RemoveEqualEntriesFromLists(List<CountdownStructure> ListOnScreen, List<CountdownStructure> ListInDB, out List<CountdownStructure> newListForScreen)
         {
+            newListForScreen = new List<CountdownStructure>();
             var tempScreen = ListOnScreen.ToList();
             var tempDB = ListInDB.ToList();
 
@@ -56,6 +58,7 @@ namespace Business.LogicalOperations
             {
                 if (tempDB.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
                 {
+                    newListForScreen.Add(item);
                     ListOnScreen.Remove(item);
                 }
             }

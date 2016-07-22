@@ -190,6 +190,15 @@ namespace Business.Helpers
             catch { returnValue = new DateTime(); }
             return returnValue;
         }
+        public static DateTime ToDateTimeWithoutMilliseconds(this DateTime input)
+        {
+            DateTime returnValue = input;
+            if (input != null)
+            {
+                returnValue = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second);
+            }
+            return returnValue;
+        }
         #endregion Getters
 
         #region Validators

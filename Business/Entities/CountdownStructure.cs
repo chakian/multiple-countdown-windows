@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Business.Helpers;
+using System;
 
 namespace Business.Entities
 {
@@ -65,6 +66,11 @@ namespace Business.Entities
 
         public EqualityStatus Compare(CountdownStructure other)
         {
+            EndTimeUtc = EndTimeUtc.ToDateTimeWithoutMilliseconds();
+            other.EndTimeUtc = other.EndTimeUtc.ToDateTimeWithoutMilliseconds();
+            UpdateTimeUtc = UpdateTimeUtc.ToDateTimeWithoutMilliseconds();
+            other.UpdateTimeUtc = other.UpdateTimeUtc.ToDateTimeWithoutMilliseconds();
+
             if (other == null || Title != other.Title || CountdownGuid != other.CountdownGuid)
             {
                 return EqualityStatus.CompletelyDifferent;
