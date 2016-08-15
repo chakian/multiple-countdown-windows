@@ -16,8 +16,8 @@ namespace Business.LogicalOperations
             List<CountdownStructure> ListOnScreen = listOnScreen.ToList();
 
             RemoveEqualEntriesFromLists(ListOnScreen, ListInDB, out newListForScreen);
-
-            //TODO: Tidy up this part... It is getting messy.
+            
+            //TODO: There is a bug too: https://github.com/chakian/multiple-countdown-windows/issues/11
             var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListOnScreen, ListInDB);
             var itemsNotInDB = getItemsThatDontExistInDB(ListInDB, ListOnScreen);
             var itemsNotUpToDateOnScreen = getItemsThatAreOutdatedOnScreen(ListOnScreen, ListInDB);
@@ -54,12 +54,14 @@ namespace Business.LogicalOperations
             var tempScreen = ListOnScreen.ToList();
             var tempDB = ListInDB.ToList();
 
-            foreach (var item in tempScreen.ToList())
+            foreach (var screenItem in tempScreen.ToList())
             {
-                if (tempDB.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
+                if (tempDB.Any(q => screenItem.Compare(q) == CountdownStructure.EqualityStatus.Equal))
                 {
-                    newListForScreen.Add(item);
-                    ListOnScreen.Remove(item);
+                    newListForScreen.Add(screenItem);
+
+                    ListOnScreen.RemoveAll(q => q.CountdownGuid == screenItem.CountdownGuid);
+                    ListInDB.RemoveAll(q => q.CountdownGuid == screenItem.CountdownGuid);
                 }
             }
             foreach (var item in tempDB.ToList())
@@ -74,11 +76,11 @@ namespace Business.LogicalOperations
         static List<CountdownStructure> getItemsThatAreOutdatedOnScreen(List<CountdownStructure> screen, List<CountdownStructure> db)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in db)
+            foreach (var dbItem in db)
             {
-                if (screen.Any(q => q.Compare(item) == CountdownStructure.EqualityStatus.SecondIsNew))
+                if (screen.Any(screenItem => screenItem.Compare(dbItem) == CountdownStructure.EqualityStatus.SecondIsNew))
                 {
-                    result.Add(item);
+                    result.Add(dbItem);
                 }
             }
             return result;
@@ -86,11 +88,11 @@ namespace Business.LogicalOperations
         static List<CountdownStructure> getItemsThatDontExistOnScreen(List<CountdownStructure> screen, List<CountdownStructure> db)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in db)
+            foreach (var dbItem in db)
             {
-                if (screen.Any(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
+                if (screen.Any(screenItem => screenItem.Title == dbItem.Title && screenItem.CountdownGuid == dbItem.CountdownGuid) == false)
                 {
-                    result.Add(item);
+                    result.Add(dbItem);
                 }
             }
             return result;
@@ -99,11 +101,11 @@ namespace Business.LogicalOperations
         static List<CountdownStructure> getItemsThatAreOutdatedInDB(List<CountdownStructure> db, List<CountdownStructure> screen)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in screen)
+            foreach (var screenItem in screen)
             {
-                if (db.Any(q => q.Compare(item) == CountdownStructure.EqualityStatus.SecondIsNew))
+                if (db.Any(dbItem => dbItem.Compare(screenItem) == CountdownStructure.EqualityStatus.SecondIsNew))
                 {
-                    result.Add(item);
+                    result.Add(screenItem);
                 }
             }
             return result;
@@ -111,11 +113,11 @@ namespace Business.LogicalOperations
         static List<CountdownStructure> getItemsThatDontExistInDB(List<CountdownStructure> db, List<CountdownStructure> screen)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in screen)
+            foreach (var screenItem in screen)
             {
-                if (db.Any(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
+                if (db.Any(dbItem => dbItem.Title == screenItem.Title && dbItem.CountdownGuid == screenItem.CountdownGuid) == false)
                 {
-                    result.Add(item);
+                    result.Add(screenItem);
                 }
             }
             return result;

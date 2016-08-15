@@ -11,6 +11,7 @@ namespace Business.DataOperations
         public CountdownStructure InsertCountdown(CountdownStructure countdown)
         {
             MC_Countdown newCountdown = FromCountdown(countdown);
+            newCountdown.UpdateTimeUtc = DateTime.UtcNow;
             dataContext.MC_Countdowns.InsertOnSubmit(newCountdown);
             dataContext.SubmitChanges();
             return ToCountdown(newCountdown);
@@ -23,6 +24,7 @@ namespace Business.DataOperations
                 newCountdown.IsInProgress = countdown.IsInProgress;
                 newCountdown.IsDeleted= countdown.IsDeleted;
                 newCountdown.EndTimeUtc = countdown.EndTimeUtc;
+                newCountdown.UpdateTimeUtc = DateTime.UtcNow;
                 dataContext.SubmitChanges();
             }
         }

@@ -7,6 +7,7 @@ namespace Business.Entities
     {
         public CountdownStructure()
         {
+            remainingTime = new RemainingTime();
             Title = string.Empty;
             SetEndTimeUtc(DateTime.UtcNow);
             IsInProgress = false;
@@ -41,7 +42,7 @@ namespace Business.Entities
         {
             EndTimeUtc = endTimeUtc;
             TotalSeconds = Math.Floor((double)(EndTimeUtc - DateTime.UtcNow).TotalSeconds);
-            TickingSeconds = TotalSeconds;
+            remainingTime.TickingSeconds = TotalSeconds;
         }
         
         public bool IsInProgress { get; set; }
@@ -54,15 +55,9 @@ namespace Business.Entities
         public double TotalSeconds { get; private set; }
         public void SetTotalSeconds(double totalSeconds)
         {
-            TotalSeconds = TickingSeconds = totalSeconds;
+            TotalSeconds = remainingTime.TickingSeconds = totalSeconds;
             EndTimeUtc = DateTime.UtcNow.AddSeconds(TotalSeconds);
         }
-
-        public double TickingSeconds { get; set; }
-        public double Days { get { return Math.Floor(TickingSeconds / 86400); } }
-        public double Hours { get { return Math.Floor((TickingSeconds - (Days * 86400)) / 3600); } }
-        public double Minutes { get { return Math.Floor((TickingSeconds - (Days * 86400) - (Hours * 3600)) / 60); } }
-        public double Seconds { get { return TickingSeconds - (Days * 86400) - (Hours * 3600) - (Minutes * 60); } }
 
         public EqualityStatus Compare(CountdownStructure other)
         {
@@ -71,7 +66,7 @@ namespace Business.Entities
             UpdateTimeUtc = UpdateTimeUtc.ToDateTimeWithoutMilliseconds();
             other.UpdateTimeUtc = other.UpdateTimeUtc.ToDateTimeWithoutMilliseconds();
 
-            if (other == null || Title != other.Title || CountdownGuid != other.CountdownGuid)
+            if (other == null || CountdownGuid != other.CountdownGuid)
             {
                 return EqualityStatus.CompletelyDifferent;
             }
@@ -94,6 +89,16 @@ namespace Business.Entities
                     return EqualityStatus.Equal;
                 }
             }
+        }
+
+        public RemainingTime remainingTime;
+        public class RemainingTime
+        {
+            public double TickingSeconds { get; set; }
+            public double Days { get { return Math.Floor(TickingSeconds / 86400); } }
+            public double Hours { get { return Math.Floor((TickingSeconds - (Days * 86400)) / 3600); } }
+            public double Minutes { get { return Math.Floor((TickingSeconds - (Days * 86400) - (Hours * 3600)) / 60); } }
+            public double Seconds { get { return TickingSeconds - (Days * 86400) - (Hours * 3600) - (Minutes * 60); } }
         }
 
         public enum EqualityStatus

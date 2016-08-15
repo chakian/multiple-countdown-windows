@@ -24,14 +24,14 @@ namespace MultipleCountdown
         public ucCountdown(CountdownStructure countdownEssentials)
             : this()
         {
-            CountdownEssentials = countdownEssentials;
-            SetTextBoxValuesFromSeconds();
-            lblTitle.Text = CountdownEssentials.Title;
-            InitializeCountdown();
+            SetCountdownEssentials(countdownEssentials);
         }
 
         void InitializeCountdown()
         {
+            lblTitle.Text = CountdownEssentials.Title;
+            SetTextBoxValuesFromSeconds();
+
             if (CountdownEssentials.IsInProgress)
             {
                 startTimer();
@@ -40,10 +40,10 @@ namespace MultipleCountdown
 
         private void SetTextBoxValuesFromSeconds()
         {
-            double Days = CountdownEssentials.Days;
-            double Hours = CountdownEssentials.Hours;
-            double Minutes = CountdownEssentials.Minutes;
-            double Seconds = CountdownEssentials.Seconds;
+            double Days = CountdownEssentials.remainingTime.Days;
+            double Hours = CountdownEssentials.remainingTime.Hours;
+            double Minutes = CountdownEssentials.remainingTime.Minutes;
+            double Seconds = CountdownEssentials.remainingTime.Seconds;
 
             if (Days == 0) tbDay.Text = string.Empty;
             else tbDay.Text = Days.ToString();
@@ -123,9 +123,9 @@ namespace MultipleCountdown
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (CountdownEssentials.TickingSeconds > 0)
+            if (CountdownEssentials.remainingTime.TickingSeconds > 0)
             {
-                CountdownEssentials.TickingSeconds--;
+                CountdownEssentials.remainingTime.TickingSeconds--;
                 SetTextBoxValuesFromSeconds();
             }
             else

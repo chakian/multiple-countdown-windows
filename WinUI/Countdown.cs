@@ -288,14 +288,14 @@ namespace MultipleCountdown
         private void tmrProgressState_Tick(object sender, EventArgs e)
         {
             //get earliest countdown
-            ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsInProgress == true).OrderBy(q => q.CountdownEssentials.TickingSeconds).FirstOrDefault();
+            ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsInProgress == true).OrderBy(q => q.CountdownEssentials.remainingTime.TickingSeconds).FirstOrDefault();
             if(earliestCountdown != null)
             {
                 CountdownStructure _struct = earliestCountdown.CountdownEssentials;
                 string _title = "";
-                if (_struct.Days > 0) _title += _struct.Days.ToString() + "d. ";
-                if (_struct.Hours > 0) _title += _struct.Hours.ToString() + "h. ";
-                _title += string.Format("{0}:{1}", _struct.Minutes, _struct.Seconds);
+                if (_struct.remainingTime.Days > 0) _title += _struct.remainingTime.Days.ToString() + "d. ";
+                if (_struct.remainingTime.Hours > 0) _title += _struct.remainingTime.Hours.ToString() + "h. ";
+                _title += string.Format("{0}:{1}", _struct.remainingTime.Minutes, _struct.remainingTime.Seconds);
 
                 this.Text = _title;
             }
