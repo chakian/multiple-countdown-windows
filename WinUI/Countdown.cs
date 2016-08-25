@@ -62,20 +62,22 @@ namespace MultipleCountdown
                     DoLogin(currentUser.ID, currentUser.Username);
                 }
             }
-
-            //if the user is logged in, get saved countdowns of user
-            //if (isLoggedIn)
-            //{
-            //    CountdownData cdData = new CountdownData();
-            //    var cds = cdData.GetCountdownsOfUser(loggedInUser);
-            //    foreach (var item in cds)
-            //    {
-            //        AddCountdown(item.Title, item.EndTimeUTC);
-            //    }
-            //}
             
             //change menu items (login/logout) according to the user's logged in status
             DoLoginLogoutOperations();
+
+            //TODO: Learn how to manipulate the panel's scrollbar
+            //pnlCountdowns.AutoScroll = false;
+            //pnlCountdowns.HorizontalScroll.Enabled = false;
+            //pnlCountdowns.HorizontalScroll.Visible = false;
+            //pnlCountdowns.HorizontalScroll.Maximum = 0;
+            //pnlCountdowns.VerticalScroll.Enabled = true;
+            //pnlCountdowns.VerticalScroll.Visible = true;
+            //if(pnlCountdowns.ClientSize.Height <= pnlCountdowns.Height)
+            //{
+            //    pnlCountdowns.VerticalScroll.Maximum = 3;
+            //}
+            //pnlCountdowns.AutoScroll = true;
         }
         
         #region Login Logout operations
@@ -187,31 +189,35 @@ namespace MultipleCountdown
         private void btnAddCountdown_Click(object sender, EventArgs e)
         {
             AddCountdown(cmbCountdownName.Text, 0);
+            cmbCountdownName.Text = string.Empty;
         }
 
         public void UserControlClosed(ucCountdown closedControl)
         {
-            var wanted = countdownList.FirstOrDefault(q => q.CountdownEssentials.CountdownGuid == closedControl.CountdownEssentials.CountdownGuid);
-            if (wanted != null)
+            if (closedControl != null)
             {
-                countdownList.Remove(wanted);
+                countdownList.Remove(closedControl);
             }
             RemoveCountdownFromScreen(closedControl);
         }
         void RemoveCountdownFromScreen(ucCountdown closedControl)
         {
-            var wanted = countdownList.FirstOrDefault(q => q.CountdownEssentials.CountdownGuid == closedControl.CountdownEssentials.CountdownGuid);
-            closedControl.Dispose();
-            if (wanted != null)
+            if (closedControl != null)
             {
                 CountdownData cdata = new CountdownData();
-                cdata.DeleteCountdown(wanted.CountdownEssentials);
+                cdata.DeleteCountdown(closedControl.CountdownEssentials);
+
+                closedControl.Dispose();
             }
             rearrangeControls();
         }
 
         private void rearrangeControls()
         {
+            //TODO: Learn how to manipulate the panel's scrollbar
+            //int initialScrollValue = pnlCountdowns.VerticalScroll.Value;
+            pnlCountdowns.VerticalScroll.Value = 0;
+
             int height = 90;
 
             for (int i = 0; i < countdownList.Count; i++)
@@ -225,11 +231,29 @@ namespace MultipleCountdown
                     countdownList[i].Top = countdownList[i - 1].Top + height + 10;
                 }
             }
+
+            //TODO: Learn how to manipulate the panel's scrollbar
+            //int currentMaxValue = pnlCountdowns.VerticalScroll.Maximum - pnlCountdowns.Height;
+            //if (currentMaxValue <= initialScrollValue)
+            //{
+            //    setPanelScrollbarValue(currentMaxValue);
+            //}
+            //else
+            //{
+            //    setPanelScrollbarValue(initialScrollValue);
+            //}
         }
+        //TODO: Learn how to manipulate the panel's scrollbar
+        //private void setPanelScrollbarValue(int value)
+        //{
+        //    pnlCountdowns.AutoScroll = false;
+        //    pnlCountdowns.AutoScrollPosition = new System.Drawing.Point(0, value * (-1));
+        //    pnlCountdowns.AutoScroll = true;
+        //}
 
         private bool IsSynchronizing = false;
         private DateTime LastSynchronizeTime = DateTime.Now;
-        private int SynchronizeIntervalInSeconds = 1 * 60; //per minute
+        private int SynchronizeIntervalInSeconds = 10000 * 60; //per minute
         public void StartSynchronization()
         {
             if (IsSynchronizing == false && isLoggedIn)
@@ -246,7 +270,8 @@ namespace MultipleCountdown
                     {
                         if(newListForScreen.Any(q=>q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
                         {
-                            listOnScreen.Remove(item);
+                            var ucToRemove = countdownList.SingleOrDefault(q => q.CountdownEssentials.Title == item.Title && q.CountdownEssentials.CountdownGuid == item.CountdownGuid);
+                            UserControlClosed(ucToRemove);
                         }
                     }
 

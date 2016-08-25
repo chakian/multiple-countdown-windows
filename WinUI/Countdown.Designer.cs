@@ -56,7 +56,7 @@
             // pnlCountdowns
             // 
             this.pnlCountdowns.AutoScroll = true;
-            this.pnlCountdowns.Location = new System.Drawing.Point(12, 91);
+            this.pnlCountdowns.Location = new System.Drawing.Point(12, 90);
             this.pnlCountdowns.Name = "pnlCountdowns";
             this.pnlCountdowns.Size = new System.Drawing.Size(556, 583);
             this.pnlCountdowns.TabIndex = 2;
@@ -119,7 +119,7 @@
             // synchronizeToolStripMenuItem
             // 
             this.synchronizeToolStripMenuItem.Name = "synchronizeToolStripMenuItem";
-            this.synchronizeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.synchronizeToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.synchronizeToolStripMenuItem.Text = "Synchronize";
             this.synchronizeToolStripMenuItem.Click += new System.EventHandler(this.synchronizeToolStripMenuItem_Click);
             // 

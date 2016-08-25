@@ -1,5 +1,7 @@
 ﻿using Business.DataOperations;
 using Business.Entities;
+using Business.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,7 +14,7 @@ namespace Business.LogicalOperations
             List<CountdownStructure> newListForScreen;
 
             CountdownData cdata = new CountdownData();
-            List<CountdownStructure> ListInDB = cdata.GetCountdownsOfUser(loggedInUser).ToList();
+            List<CountdownStructure> ListInDB = cdata.GetAllCountdownsOfUser(loggedInUser).ToList();
             List<CountdownStructure> ListOnScreen = listOnScreen.ToList();
 
             RemoveEqualEntriesFromLists(ListOnScreen, ListInDB, out newListForScreen);
@@ -42,7 +44,7 @@ namespace Business.LogicalOperations
 
             if (itemsNotUpToDateOnScreen != null && itemsNotUpToDateOnScreen.Count > 0)
             {
-                newListForScreen.AddRange(itemsNotUpToDateOnScreen);
+                newListForScreen.AddRange(itemsNotUpToDateOnScreen.GetOnlyOngoingActiveCountdowns());
             }
 
             return newListForScreen;
@@ -52,23 +54,17 @@ namespace Business.LogicalOperations
         {
             newListForScreen = new List<CountdownStructure>();
             var tempScreen = ListOnScreen.ToList();
-            var tempDB = ListInDB.ToList();
+            var tempActiveDb = ListInDB.Where(q => q.IsDeleted == false).ToList();
 
+            //remove entries that exist both in db and on screen
             foreach (var screenItem in tempScreen.ToList())
             {
-                if (tempDB.Any(q => screenItem.Compare(q) == CountdownStructure.EqualityStatus.Equal))
+                if (tempActiveDb.Any(dbItem => screenItem.Compare(dbItem) == CountdownStructure.EqualityStatus.Equal))
                 {
                     newListForScreen.Add(screenItem);
 
                     ListOnScreen.RemoveAll(q => q.CountdownGuid == screenItem.CountdownGuid);
                     ListInDB.RemoveAll(q => q.CountdownGuid == screenItem.CountdownGuid);
-                }
-            }
-            foreach (var item in tempDB.ToList())
-            {
-                if (tempScreen.Any(q => item.Compare(q) == CountdownStructure.EqualityStatus.Equal))
-                {
-                    ListInDB.Remove(item);
                 }
             }
         }
@@ -88,9 +84,9 @@ namespace Business.LogicalOperations
         static List<CountdownStructure> getItemsThatDontExistOnScreen(List<CountdownStructure> screen, List<CountdownStructure> db)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var dbItem in db)
+            foreach (var dbItem in db.GetOnlyOngoingActiveCountdowns())
             {
-                if (screen.Any(screenItem => screenItem.Title == dbItem.Title && screenItem.CountdownGuid == dbItem.CountdownGuid) == false)
+                if (screen.Any(screenItem => screenItem.CountdownGuid == dbItem.CountdownGuid) == false)
                 {
                     result.Add(dbItem);
                 }
@@ -115,7 +111,7 @@ namespace Business.LogicalOperations
             List<CountdownStructure> result = new List<CountdownStructure>();
             foreach (var screenItem in screen)
             {
-                if (db.Any(dbItem => dbItem.Title == screenItem.Title && dbItem.CountdownGuid == screenItem.CountdownGuid) == false)
+                if (db.Any(dbItem => dbItem.CountdownGuid == screenItem.CountdownGuid) == false)
                 {
                     result.Add(screenItem);
                 }

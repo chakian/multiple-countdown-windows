@@ -80,13 +80,9 @@ namespace Business.Entities
                 {
                     return EqualityStatus.FirstIsNew;
                 }
-                else if (other.UpdateTimeUtc > UpdateTimeUtc)
-                {
-                    return EqualityStatus.SecondIsNew;
-                }
                 else
                 {
-                    return EqualityStatus.Equal;
+                    return EqualityStatus.SecondIsNew;
                 }
             }
         }

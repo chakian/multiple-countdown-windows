@@ -49,6 +49,7 @@
     <Compile Include="DataOperations\UserData.cs" />
     <Compile Include="Entities\CountdownStructure.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Extensions\CountdownStructureExtension.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\RegistryHelper.cs" />
     <Compile Include="Helpers\ParseHelper.cs" />

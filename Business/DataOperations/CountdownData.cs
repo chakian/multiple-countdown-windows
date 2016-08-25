@@ -4,112 +4,79 @@ using System.Linq;
 namespace Business.DataOperations
 {
     using Entities;
-    using Helpers;
+    using Extensions;
     using System;
     public class CountdownData : DataOpBase
     {
-        public CountdownStructure InsertCountdown(CountdownStructure countdown)
+        #region Insert - Update - Delete
+        public CountdownStructure InsertCountdown(CountdownStructure cStruct)
         {
-            MC_Countdown newCountdown = FromCountdown(countdown);
-            newCountdown.UpdateTimeUtc = DateTime.UtcNow;
-            dataContext.MC_Countdowns.InsertOnSubmit(newCountdown);
+            MC_Countdown countdown = cStruct.ToDataObject();
+            countdown.UpdateTimeUtc = DateTime.UtcNow;
+            dataContext.MC_Countdowns.InsertOnSubmit(countdown);
             dataContext.SubmitChanges();
-            return ToCountdown(newCountdown);
+            return countdown.ToStructure();
         }
-        public void UpdateCountdown(CountdownStructure countdown)
+        public void UpdateCountdown(CountdownStructure cStruct)
         {
-            MC_Countdown newCountdown = GetCountdownByUniqueInfo(countdown.UserID, countdown.Title, countdown.CountdownGuid);
-            if(newCountdown != null)
+            MC_Countdown countdown = GetCountdownByUniqueInfo(cStruct.UserID, cStruct.Title, cStruct.CountdownGuid);
+            if(countdown != null)
             {
-                newCountdown.IsInProgress = countdown.IsInProgress;
-                newCountdown.IsDeleted= countdown.IsDeleted;
-                newCountdown.EndTimeUtc = countdown.EndTimeUtc;
-                newCountdown.UpdateTimeUtc = DateTime.UtcNow;
-                dataContext.SubmitChanges();
+                countdown.IsInProgress = cStruct.IsInProgress;
+                countdown.IsDeleted= cStruct.IsDeleted;
+                countdown.EndTimeUtc = cStruct.EndTimeUtc;
+
+                UpdateCountdown(countdown);
             }
         }
-        public void DeleteCountdown(CountdownStructure cd)
+        private void UpdateCountdown(MC_Countdown countdown)
         {
-            MC_Countdown countdown = GetCountdownByUniqueInfo(cd.UserID, cd.Title, cd.CountdownGuid);
+            countdown.UpdateTimeUtc = DateTime.UtcNow;
+            dataContext.SubmitChanges();
+        }
+        public void DeleteCountdown(CountdownStructure cStruct)
+        {
+            MC_Countdown countdown = GetCountdownByUniqueInfo(cStruct.UserID, cStruct.Title, cStruct.CountdownGuid);
             if (countdown != null)
             {
-                dataContext.MC_Countdowns.DeleteOnSubmit(countdown);
-                dataContext.SubmitChanges();
+                countdown.IsDeleted = true;
+                UpdateCountdown(countdown);
             }
         }
+        #endregion Insert - Update - Delete
 
-        //private CountdownStructure GetCountdownByUniqueInfo(int userID, string title, string guid)
-        //{
-        //    var countdown = GetCountdownsOfUser(userID).SingleOrDefault(q => q.Title == title && q.CountdownGuid == guid);
-        //    return countdown;
-        //}
-
-        public List<CountdownStructure> GetCountdownsOfUser(int userID)
+        public List<CountdownStructure> GetAllCountdownsOfUser(int userID)
         {
             List<CountdownStructure> result = new List<CountdownStructure>();
-            foreach (var item in GetOngoingCountdowns())
+            var countdowns = GetAllCountdowns().Where(q => q.UserID == userID).ToList();
+            foreach (var item in countdowns)
             {
-                result.Add(ToCountdown(item));
+                result.Add(item.ToStructure());
             }
             return result;
         }
 
+        public List<CountdownStructure> GetNotDeletedCountdownsOfUser(int userID)
+        {
+            var countdowns = GetAllCountdownsOfUser(userID).Where(q => q.IsDeleted == false).ToList();
+            return countdowns;
+        }
+
+        public List<CountdownStructure> GetOngoingCountdownsOfUser(int userID)
+        {
+            var countdowns = GetNotDeletedCountdownsOfUser(userID).Where(q => q.EndTimeUtc >= DateTime.UtcNow).ToList();
+            return countdowns;
+        }
+        
         private MC_Countdown GetCountdownByUniqueInfo(int userID, string title, string guid)
         {
-            var countdown = GetOngoingCountdowns().SingleOrDefault(q => q.UserID == userID && q.Title == title && q.CountdownGuid == guid);
+            var countdown = GetAllCountdowns().SingleOrDefault(q => q.UserID == userID && q.Title == title && q.CountdownGuid == guid);
             return countdown;
-        }
-
-        private IEnumerable<MC_Countdown> GetOngoingCountdowns()
-        {
-            var ongoingCountdowns = GetActiveCountdowns().Where(q => q.EndTimeUtc > DateTime.UtcNow);
-            return ongoingCountdowns;
-        }
-        private IEnumerable<MC_Countdown> GetOldCountdowns()
-        {
-            var oldCountdowns = GetActiveCountdowns().Where(q => q.EndTimeUtc <= DateTime.UtcNow);
-            return oldCountdowns;
-        }
-
-        private IEnumerable<MC_Countdown> GetActiveCountdowns()
-        {
-            var activeCountdowns = GetAllCountdowns().Where(q=>q.IsDeleted == false);
-            return activeCountdowns;
         }
 
         private IEnumerable<MC_Countdown> GetAllCountdowns()
         {
             return dataContext.MC_Countdowns.AsEnumerable();
-        }
-
-        private CountdownStructure ToCountdown(MC_Countdown input)
-        {
-            CountdownStructure output = new CountdownStructure(input.Title, input.EndTimeUtc)
-            {
-                ID = input.ID,
-                UserID = input.UserID,
-                CountdownGuid = input.CountdownGuid,
-                IsInProgress = input.IsInProgress,
-                IsDeleted = input.IsDeleted,
-                UpdateTimeUtc = input.UpdateTimeUtc
-            };
-            return output;
-        }
-
-        private MC_Countdown FromCountdown(CountdownStructure input)
-        {
-            MC_Countdown output = new MC_Countdown()
-            {
-                ID = input.ID,
-                UserID = input.UserID,
-                CountdownGuid = input.CountdownGuid,
-                Title = input.Title,
-                EndTimeUtc = input.EndTimeUtc,
-                IsInProgress = input.IsInProgress,
-                IsDeleted = input.IsDeleted,
-                UpdateTimeUtc = input.UpdateTimeUtc
-            };
-            return output;
         }
     }
 }
