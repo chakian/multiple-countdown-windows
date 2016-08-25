@@ -19,7 +19,6 @@ namespace Business.LogicalOperations
 
             RemoveEqualEntriesFromLists(ListOnScreen, ListInDB, out newListForScreen);
             
-            //TODO: There is a bug too: https://github.com/chakian/multiple-countdown-windows/issues/11
             var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListOnScreen, ListInDB);
             var itemsNotInDB = getItemsThatDontExistInDB(ListInDB, ListOnScreen);
             var itemsNotUpToDateOnScreen = getItemsThatAreOutdatedOnScreen(ListOnScreen, ListInDB);
