@@ -9,6 +9,8 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "MCDb", "MCDb\MCDb.sqlproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Business", "Business\Business.csproj", "{8A5ED29C-D959-4CAA-AA51-250624500B76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AngularWebUI", "AngularWebUI\AngularWebUI.csproj", "{DCDBF716-31D8-4D3E-96F0-13EA00E46CBC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8A5ED29C-D959-4CAA-AA51-250624500B76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A5ED29C-D959-4CAA-AA51-250624500B76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A5ED29C-D959-4CAA-AA51-250624500B76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCDBF716-31D8-4D3E-96F0-13EA00E46CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCDBF716-31D8-4D3E-96F0-13EA00E46CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCDBF716-31D8-4D3E-96F0-13EA00E46CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCDBF716-31D8-4D3E-96F0-13EA00E46CBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
