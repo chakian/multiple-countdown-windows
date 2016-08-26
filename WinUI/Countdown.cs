@@ -5,7 +5,9 @@ using Business.LogicalOperations;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 //TODO: Learn how to use the taskbarprogress thing
@@ -253,11 +255,12 @@ namespace MultipleCountdown
 
         private bool IsSynchronizing = false;
         private DateTime LastSynchronizeTime = DateTime.Now;
-        private int SynchronizeIntervalInSeconds = 10000 * 60; //per minute
+        private int SynchronizeIntervalInSeconds = 3 * 60; //every 3 minutes
         public void StartSynchronization()
         {
             if (IsSynchronizing == false && isLoggedIn)
             {
+                DisplayMessage(MessageTypes.Information, "Synchronizing...");
                 IsSynchronizing = true;
 
                 try
@@ -305,10 +308,77 @@ namespace MultipleCountdown
                 {
                     IsSynchronizing = false;
                     LastSynchronizeTime = DateTime.Now;
+                    HideMessage();
                 }
             }
         }
         #endregion Countdown User Control operations
+
+        private enum MessageTypes { Error, Information, Warning }
+        DateTime messageDisplayedTime = DateTime.MinValue;
+        int minimumMessageDisplayInSeconds = 2;
+        private void DisplayMessage(MessageTypes messageType, string messageText)
+        {
+            switch (messageType)
+            {
+                case MessageTypes.Error:
+                    lblMessage.BackColor = Color.Red;
+                    break;
+                case MessageTypes.Information:
+                    lblMessage.BackColor = Color.LightBlue;
+                    break;
+                case MessageTypes.Warning:
+                    lblMessage.BackColor = Color.Yellow;
+                    break;
+                default:
+                    break;
+            }
+            changeMessageLabelText(messageText);
+            messageDisplayedTime = DateTime.Now;
+            lblMessage.Visible = true;
+        }
+        private void HideMessage()
+        {
+            if((DateTime.Now - messageDisplayedTime).Seconds < minimumMessageDisplayInSeconds)
+            {
+                Thread hider = new Thread(hideMessageAsync);
+                hider.Start();
+            }else
+            {
+                hideMessageLabel();
+            }
+        }
+        private void hideMessageAsync()
+        {
+            double waitTime = minimumMessageDisplayInSeconds - ((DateTime.Now - messageDisplayedTime).TotalSeconds);
+            Thread.Sleep((int)waitTime);
+            HideMessage();
+        }
+        delegate void changeMessageLabelTextCallback(string text);
+        private void changeMessageLabelText(string text)
+        {
+            if (lblMessage.InvokeRequired)
+            {
+                changeMessageLabelTextCallback d = new changeMessageLabelTextCallback(changeMessageLabelText);
+                this.Invoke(d, new object[] { text });
+            }else
+            {
+                lblMessage.Text = text;
+            }
+        }
+        delegate void hideMessageLabelCallback();
+        private void hideMessageLabel()
+        {
+            if (lblMessage.InvokeRequired)
+            {
+                hideMessageLabelCallback d = new hideMessageLabelCallback(hideMessageLabel);
+                this.Invoke(d, new object[] { });
+            }
+            else
+            {
+                lblMessage.Visible = false;
+            }
+        }
 
         private void tmrProgressState_Tick(object sender, EventArgs e)
         {
@@ -343,6 +413,21 @@ namespace MultipleCountdown
         private void synchronizeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             StartSynchronization();
+        }
+
+        private void errorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DisplayMessage(MessageTypes.Error, "this is error!");
+        }
+
+        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void warningToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DisplayMessage(MessageTypes.Warning, "i'm warning ya");
         }
     }
 
