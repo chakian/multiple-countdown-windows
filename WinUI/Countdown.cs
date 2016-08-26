@@ -1,7 +1,14 @@
-﻿using System;
+﻿using Business.DataOperations;
+using Business.Entities;
+using Business.Helpers;
+using Business.LogicalOperations;
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 //TODO: Learn how to use the taskbarprogress thing
 //using System.Windows.Shell;
@@ -10,45 +17,209 @@ namespace MultipleCountdown
 {
     public partial class Countdown : Form
     {
-        int loggedInUser;
+        private int _loggedInUser = 0;
+        public int LoggedInUser
+        {
+            get
+            {
+                return _loggedInUser;
+            }
+            set
+            {
+                _loggedInUser = value;
+                countdownList.ForEach(q => q.CountdownEssentials.UserID = _loggedInUser);
+            }
+        }
+        public bool isLoggedIn
+        {
+            get
+            {
+                return LoggedInUser > 0;
+            }
+        }
         List<ucCountdown> countdownList;
-        //BaseCountdown countdownValues;
 
         public Countdown()
         {
             InitializeComponent();
             countdownList = new List<ucCountdown>();
-
-            //countdownValues = new TornCountdown();
-            //cmbCountdownName.Items.AddRange(countdownValues.CountdownCounts.Select(q=>q.Title).ToArray<object>());
-
+            
             tmrProgressState.Enabled = true;
+
+            //Get logged in user id
+            string encryptedId = RegistryHelper.ReadRegistryNode(RegistryHelper.MCNode_UserID);
+            if(string.IsNullOrEmpty(encryptedId) == false)
+            {
+                string decipheredId = string.Empty;
+                try
+                {
+                    decipheredId = EncryptionHelper.Decrypt(encryptedId);
+                }catch{}
+
+                if(string.IsNullOrEmpty(decipheredId) == false)
+                {
+                    LoggedInUser = ParseHelper.ToInt32(decipheredId, 0);
+                    UserData userD = new UserData();
+                    User currentUser = userD.GetUserByID(LoggedInUser);
+                    DoLogin(currentUser.ID, currentUser.Username);
+                }
+            }
+            
+            //change menu items (login/logout) according to the user's logged in status
+            DoLoginLogoutOperations();
+
+            //TODO: Learn how to manipulate the panel's scrollbar
+            //pnlCountdowns.AutoScroll = false;
+            //pnlCountdowns.HorizontalScroll.Enabled = false;
+            //pnlCountdowns.HorizontalScroll.Visible = false;
+            //pnlCountdowns.HorizontalScroll.Maximum = 0;
+            //pnlCountdowns.VerticalScroll.Enabled = true;
+            //pnlCountdowns.VerticalScroll.Visible = true;
+            //if(pnlCountdowns.ClientSize.Height <= pnlCountdowns.Height)
+            //{
+            //    pnlCountdowns.VerticalScroll.Maximum = 3;
+            //}
+            //pnlCountdowns.AutoScroll = true;
+        }
+        
+        #region Login Logout operations
+        private void DoLoginLogoutOperations()
+        {
+            if (isLoggedIn)
+            {
+                loginToolStripMenuItem.Visible = false;
+                logoutToolStripMenuItem.Visible = true;
+            }
+            else
+            {
+                loginToolStripMenuItem.Visible = true;
+                logoutToolStripMenuItem.Visible = false;
+                mainToolStripMenuItem.Text = "User";
+            }
         }
 
-        private void btnAddCountdown_Click(object sender, EventArgs e)
+        public bool DoLogin(string username, string password)
         {
-            ucCountdown uc = new ucCountdown(new BaseCountdownStructure() { Title = cmbCountdownName.Text, TotalSeconds = 0 });
-            uc.ControlGuid = Guid.NewGuid();
-            //uc.CountdownEssentials = countdownValues.GetCountdownByTitle(cmbCountdownName.Text);
+            UserData userData = new UserData();
+
+            var user = userData.GetUserByUsernameAndPassword(username, password);
             
+            if (user != null)
+            {
+                DoLogin(user.ID, user.Username);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public void DoLogin(int userID, string username)
+        {
+            LoggedInUser = userID;
+            RegistryHelper.WriteRegistryNode(RegistryHelper.MCNode_UserID, EncryptionHelper.Encrypt(userID.ToString()));
+            mainToolStripMenuItem.Text = "User: " + username;
+            StartSynchronization();
+            DoLoginLogoutOperations();
+        }
+
+        private void DoLogout()
+        {
+            LoggedInUser = 0;
+            RegistryHelper.DeleteRegistryNode(RegistryHelper.MCNode_UserID);
+            DoLoginLogoutOperations();
+        }
+
+        public bool DoRegister(string username, string email, string password)
+        {
+            UserData userData = new UserData();
+
+            var user = userData.CreateNewUser(username, email, password);
+            if (user != null)
+            {
+                DoLogin(user.ID, user.Username);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private void loginToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LoginForm login = new LoginForm();
+            login.ShowDialog(this);
+        }
+
+        private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Do you really want to log out?", "Logout", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
+                DoLogout();
+        }
+        #endregion Login Logout operations
+
+        #region Countdown User Control operations
+        private void AddCountdown(string title, DateTime endTimeUtc)
+        {
+            CountdownStructure cdStruct = new CountdownStructure(title, endTimeUtc);
+            AddCountdown(cdStruct);
+        }
+        
+        private void AddCountdown(string title, double totalSeconds)
+        {
+            CountdownStructure cdStruct = new CountdownStructure(title, totalSeconds);
+            AddCountdown(cdStruct);
+        }
+
+        private void AddCountdown(CountdownStructure cdStruct)
+        {
+            cdStruct.UserID = LoggedInUser;
+            if (string.IsNullOrEmpty(cdStruct.CountdownGuid))
+            {
+                cdStruct.CountdownGuid = Guid.NewGuid().ToString();
+            }
+
+            ucCountdown uc = new ucCountdown(cdStruct);
+
             countdownList.Add(uc);
             pnlCountdowns.Controls.Add(uc);
             rearrangeControls();
         }
 
+        private void btnAddCountdown_Click(object sender, EventArgs e)
+        {
+            AddCountdown(cmbCountdownName.Text, 0);
+            cmbCountdownName.Text = string.Empty;
+        }
+
         public void UserControlClosed(ucCountdown closedControl)
         {
-            closedControl.Dispose();
-            var wanted = countdownList.FirstOrDefault(q => q.ControlGuid == closedControl.ControlGuid);
-            if (wanted != null)
+            if (closedControl != null)
             {
-                countdownList.Remove(wanted);
+                countdownList.Remove(closedControl);
+            }
+            RemoveCountdownFromScreen(closedControl);
+        }
+        void RemoveCountdownFromScreen(ucCountdown closedControl)
+        {
+            if (closedControl != null)
+            {
+                CountdownData cdata = new CountdownData();
+                cdata.DeleteCountdown(closedControl.CountdownEssentials);
+
+                closedControl.Dispose();
             }
             rearrangeControls();
         }
 
         private void rearrangeControls()
         {
+            //TODO: Learn how to manipulate the panel's scrollbar
+            //int initialScrollValue = pnlCountdowns.VerticalScroll.Value;
+            pnlCountdowns.VerticalScroll.Value = 0;
+
             int height = 90;
 
             for (int i = 0; i < countdownList.Count; i++)
@@ -62,19 +233,164 @@ namespace MultipleCountdown
                     countdownList[i].Top = countdownList[i - 1].Top + height + 10;
                 }
             }
+
+            //TODO: Learn how to manipulate the panel's scrollbar
+            //int currentMaxValue = pnlCountdowns.VerticalScroll.Maximum - pnlCountdowns.Height;
+            //if (currentMaxValue <= initialScrollValue)
+            //{
+            //    setPanelScrollbarValue(currentMaxValue);
+            //}
+            //else
+            //{
+            //    setPanelScrollbarValue(initialScrollValue);
+            //}
+        }
+        //TODO: Learn how to manipulate the panel's scrollbar
+        //private void setPanelScrollbarValue(int value)
+        //{
+        //    pnlCountdowns.AutoScroll = false;
+        //    pnlCountdowns.AutoScrollPosition = new System.Drawing.Point(0, value * (-1));
+        //    pnlCountdowns.AutoScroll = true;
+        //}
+
+        private bool IsSynchronizing = false;
+        private DateTime LastSynchronizeTime = DateTime.Now;
+        private int SynchronizeIntervalInSeconds = 3 * 60; //every 3 minutes
+        public void StartSynchronization()
+        {
+            if (IsSynchronizing == false && isLoggedIn)
+            {
+                DisplayMessage(MessageTypes.Information, "Synchronizing...");
+                IsSynchronizing = true;
+
+                try
+                {
+                    List<CountdownStructure> listOnScreen = countdownList.Select(q => q.CountdownEssentials).ToList();
+                    List<CountdownStructure> newListForScreen = CountdownSynchronization.Synchronize(listOnScreen, LoggedInUser);
+
+                    //removed countdowns are removed from screen as well
+                    foreach (var item in listOnScreen.ToList())
+                    {
+                        if(newListForScreen.Any(q=>q.Title == item.Title && q.CountdownGuid == item.CountdownGuid) == false)
+                        {
+                            var ucToRemove = countdownList.SingleOrDefault(q => q.CountdownEssentials.Title == item.Title && q.CountdownEssentials.CountdownGuid == item.CountdownGuid);
+                            UserControlClosed(ucToRemove);
+                        }
+                    }
+
+                    //newly added and updated countdowns are updated on screen
+                    foreach (var item in newListForScreen)
+                    {
+                        var onscreen = listOnScreen.SingleOrDefault(q => q.Title == item.Title && q.CountdownGuid == item.CountdownGuid);
+                        if(onscreen == null)
+                        {
+                            AddCountdown(item);
+                        }
+                        else
+                        {
+                            var compareStatus = onscreen.Compare(item);
+                            if(compareStatus == CountdownStructure.EqualityStatus.SecondIsNew)
+                            {
+                                var ucToUpdate = countdownList.SingleOrDefault(q => q.CountdownEssentials.Title == item.Title && q.CountdownEssentials.CountdownGuid == item.CountdownGuid);
+                                if(ucToUpdate != null)
+                                {
+                                    ucToUpdate.SetCountdownEssentials(item);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Log
+                }
+                finally
+                {
+                    IsSynchronizing = false;
+                    LastSynchronizeTime = DateTime.Now;
+                    HideMessage();
+                }
+            }
+        }
+        #endregion Countdown User Control operations
+
+        private enum MessageTypes { Error, Information, Warning }
+        DateTime messageDisplayedTime = DateTime.MinValue;
+        int minimumMessageDisplayInSeconds = 2;
+        private void DisplayMessage(MessageTypes messageType, string messageText)
+        {
+            switch (messageType)
+            {
+                case MessageTypes.Error:
+                    lblMessage.BackColor = Color.Red;
+                    break;
+                case MessageTypes.Information:
+                    lblMessage.BackColor = Color.LightBlue;
+                    break;
+                case MessageTypes.Warning:
+                    lblMessage.BackColor = Color.Yellow;
+                    break;
+                default:
+                    break;
+            }
+            changeMessageLabelText(messageText);
+            messageDisplayedTime = DateTime.Now;
+            lblMessage.Visible = true;
+        }
+        private void HideMessage()
+        {
+            if((DateTime.Now - messageDisplayedTime).Seconds < minimumMessageDisplayInSeconds)
+            {
+                Thread hider = new Thread(hideMessageAsync);
+                hider.Start();
+            }else
+            {
+                hideMessageLabel();
+            }
+        }
+        private void hideMessageAsync()
+        {
+            double waitTime = minimumMessageDisplayInSeconds - ((DateTime.Now - messageDisplayedTime).TotalSeconds);
+            Thread.Sleep((int)waitTime);
+            HideMessage();
+        }
+        delegate void changeMessageLabelTextCallback(string text);
+        private void changeMessageLabelText(string text)
+        {
+            if (lblMessage.InvokeRequired)
+            {
+                changeMessageLabelTextCallback d = new changeMessageLabelTextCallback(changeMessageLabelText);
+                this.Invoke(d, new object[] { text });
+            }else
+            {
+                lblMessage.Text = text;
+            }
+        }
+        delegate void hideMessageLabelCallback();
+        private void hideMessageLabel()
+        {
+            if (lblMessage.InvokeRequired)
+            {
+                hideMessageLabelCallback d = new hideMessageLabelCallback(hideMessageLabel);
+                this.Invoke(d, new object[] { });
+            }
+            else
+            {
+                lblMessage.Visible = false;
+            }
         }
 
         private void tmrProgressState_Tick(object sender, EventArgs e)
         {
             //get earliest countdown
-            ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsTicking == true).OrderBy(q => q.CountdownEssentials.TickingSeconds).FirstOrDefault();
+            ucCountdown earliestCountdown = countdownList.Where(q => q.CountdownEssentials.IsInProgress == true).OrderBy(q => q.CountdownEssentials.remainingTime.TickingSeconds).FirstOrDefault();
             if(earliestCountdown != null)
             {
-                BaseCountdownStructure _struct = earliestCountdown.CountdownEssentials;
+                CountdownStructure _struct = earliestCountdown.CountdownEssentials;
                 string _title = "";
-                if (_struct.Days > 0) _title += _struct.Days.ToString() + "d. ";
-                if (_struct.Hours > 0) _title += _struct.Hours.ToString() + "h. ";
-                _title += string.Format("{0}:{1}", _struct.Minutes, _struct.Seconds);
+                if (_struct.remainingTime.Days > 0) _title += _struct.remainingTime.Days.ToString() + "d. ";
+                if (_struct.remainingTime.Hours > 0) _title += _struct.remainingTime.Hours.ToString() + "h. ";
+                _title += string.Format("{0}:{1}", _struct.remainingTime.Minutes, _struct.remainingTime.Seconds);
 
                 this.Text = _title;
             }
@@ -82,10 +398,36 @@ namespace MultipleCountdown
             {
                 this.Text += "";
             }
+
+            //synchronize data
+            if((DateTime.Now - LastSynchronizeTime).TotalSeconds >= SynchronizeIntervalInSeconds)
+            {
+                StartSynchronization();
+            }
             
             //Taskbar.ProgressBar
             //this.
             //System.Windows.Forms.VisualStyles.VisualStyleElement.Taskbar taskbar = this.task
+        }
+
+        private void synchronizeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StartSynchronization();
+        }
+
+        private void errorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DisplayMessage(MessageTypes.Error, "this is error!");
+        }
+
+        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void warningToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DisplayMessage(MessageTypes.Warning, "i'm warning ya");
         }
     }
 

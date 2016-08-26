@@ -95,17 +95,17 @@ namespace Business
 		
 		private int _UserID;
 		
+		private string _CountdownGuid;
+		
 		private string _Title;
 		
-		private System.DateTime _EndTime;
-		
-		private System.DateTime _CreateTime;
-		
-		private System.DateTime _UpdateTime;
+		private System.DateTime _EndTimeUtc;
 		
 		private bool _IsInProgress;
 		
 		private bool _IsDeleted;
+		
+		private System.DateTime _UpdateTimeUtc;
 		
 		private EntityRef<MC_User> _MC_User;
 		
@@ -117,18 +117,18 @@ namespace Business
     partial void OnIDChanged();
     partial void OnUserIDChanging(int value);
     partial void OnUserIDChanged();
+    partial void OnCountdownGuidChanging(string value);
+    partial void OnCountdownGuidChanged();
     partial void OnTitleChanging(string value);
     partial void OnTitleChanged();
-    partial void OnEndTimeChanging(System.DateTime value);
-    partial void OnEndTimeChanged();
-    partial void OnCreateTimeChanging(System.DateTime value);
-    partial void OnCreateTimeChanged();
-    partial void OnUpdateTimeChanging(System.DateTime value);
-    partial void OnUpdateTimeChanged();
+    partial void OnEndTimeUtcChanging(System.DateTime value);
+    partial void OnEndTimeUtcChanged();
     partial void OnIsInProgressChanging(bool value);
     partial void OnIsInProgressChanged();
     partial void OnIsDeletedChanging(bool value);
     partial void OnIsDeletedChanged();
+    partial void OnUpdateTimeUtcChanging(System.DateTime value);
+    partial void OnUpdateTimeUtcChanged();
     #endregion
 		
 		public MC_Countdown()
@@ -181,7 +181,27 @@ namespace Business
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Title", DbType="NVarChar(150)")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CountdownGuid", DbType="NVarChar(100) NOT NULL", CanBeNull=false)]
+		public string CountdownGuid
+		{
+			get
+			{
+				return this._CountdownGuid;
+			}
+			set
+			{
+				if ((this._CountdownGuid != value))
+				{
+					this.OnCountdownGuidChanging(value);
+					this.SendPropertyChanging();
+					this._CountdownGuid = value;
+					this.SendPropertyChanged("CountdownGuid");
+					this.OnCountdownGuidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Title", DbType="NVarChar(150) NOT NULL", CanBeNull=false)]
 		public string Title
 		{
 			get
@@ -201,62 +221,22 @@ namespace Business
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EndTime", DbType="DateTime NOT NULL")]
-		public System.DateTime EndTime
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EndTimeUtc", DbType="DateTime NOT NULL")]
+		public System.DateTime EndTimeUtc
 		{
 			get
 			{
-				return this._EndTime;
+				return this._EndTimeUtc;
 			}
 			set
 			{
-				if ((this._EndTime != value))
+				if ((this._EndTimeUtc != value))
 				{
-					this.OnEndTimeChanging(value);
+					this.OnEndTimeUtcChanging(value);
 					this.SendPropertyChanging();
-					this._EndTime = value;
-					this.SendPropertyChanged("EndTime");
-					this.OnEndTimeChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CreateTime", DbType="DateTime NOT NULL")]
-		public System.DateTime CreateTime
-		{
-			get
-			{
-				return this._CreateTime;
-			}
-			set
-			{
-				if ((this._CreateTime != value))
-				{
-					this.OnCreateTimeChanging(value);
-					this.SendPropertyChanging();
-					this._CreateTime = value;
-					this.SendPropertyChanged("CreateTime");
-					this.OnCreateTimeChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UpdateTime", DbType="DateTime NOT NULL")]
-		public System.DateTime UpdateTime
-		{
-			get
-			{
-				return this._UpdateTime;
-			}
-			set
-			{
-				if ((this._UpdateTime != value))
-				{
-					this.OnUpdateTimeChanging(value);
-					this.SendPropertyChanging();
-					this._UpdateTime = value;
-					this.SendPropertyChanged("UpdateTime");
-					this.OnUpdateTimeChanged();
+					this._EndTimeUtc = value;
+					this.SendPropertyChanged("EndTimeUtc");
+					this.OnEndTimeUtcChanged();
 				}
 			}
 		}
@@ -297,6 +277,26 @@ namespace Business
 					this._IsDeleted = value;
 					this.SendPropertyChanged("IsDeleted");
 					this.OnIsDeletedChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UpdateTimeUtc", DbType="DateTime NOT NULL")]
+		public System.DateTime UpdateTimeUtc
+		{
+			get
+			{
+				return this._UpdateTimeUtc;
+			}
+			set
+			{
+				if ((this._UpdateTimeUtc != value))
+				{
+					this.OnUpdateTimeUtcChanging(value);
+					this.SendPropertyChanging();
+					this._UpdateTimeUtc = value;
+					this.SendPropertyChanged("UpdateTimeUtc");
+					this.OnUpdateTimeUtcChanged();
 				}
 			}
 		}

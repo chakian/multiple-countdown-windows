@@ -138,7 +138,7 @@ namespace Business.Helpers
         public static int ToInt32(object input, int defaultValue)
         {
             int returnValue;
-            try { returnValue = int.Parse(input.ToString()); } catch { returnValue = 0; }
+            try { returnValue = int.Parse(input.ToString()); } catch { returnValue = defaultValue; }
             return returnValue;
         }
         /// <summary>
@@ -188,6 +188,15 @@ namespace Business.Helpers
                 returnValue = DateTime.ParseExact(input.ToString(), provider.DateTimeFormat.ToString(), provider);
             }
             catch { returnValue = new DateTime(); }
+            return returnValue;
+        }
+        public static DateTime ToDateTimeWithoutMilliseconds(this DateTime input)
+        {
+            DateTime returnValue = input;
+            if (input != null)
+            {
+                returnValue = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second);
+            }
             return returnValue;
         }
         #endregion Getters
