@@ -1,11 +1,13 @@
-## Windows Desktop Application of Multiple Countdown
+# Windows and Web Applications of Multiple Countdown
 
 ### Last things first
 
-This application is close to be done. I don't think I'll make too much further development for this application after the open issues are closed.
+The windows desktop application is close to be done. I don't think I'll make too much further development for that application after the open issues are closed.
 
-I will then start working on a web application that uses the same database for the second platform support of the countdown application.
+I have started working on a web application that uses the same database for the second platform support of the countdown application.
 Well, if I live that long, after the web app, I may start working on an Android app too. Who knows.
+
+## Windows Application
 
 ### What is this app about?
 
@@ -17,17 +19,13 @@ After a while, I thought that maybe someone else could want to have this kind of
 
 ### Architecture
 
-I believe (hope) that the code is self-explanatory. There are only 3 projects in the solution and 1 of them is the database.
+I believe (hope) that the code is self-explanatory. There is 1 project (WinUI) related to the desktop app. 1 project is the database. And it will grow a bit as have started working on the web app now.
 
 Business project handles mostly the database operations and data manipulation (I didn't think that a new project for data layer was necessary, but maybe I'll do it some time)
 
-WinUI project, well, has all the Windows UI things.
+### Desktop Application Interface
 
-### Application Interface
-
-Interface is quite simple actually. There is a main window that shows the current countdowns and allows to add new countdowns. This main window has a panel; and this panel contains a list of countdown user controls.
-
-Actual counting down is done by the user control.
+Interface is quite simple actually. There is a main window that shows the current countdowns and allows to add new countdowns. This main window has a panel; and this panel contains a list of countdown user controls. Actual counting down is done by the user control.
 
 ### Synchronization
 
@@ -38,5 +36,9 @@ I'm not sure if I can ping the app from the server (from the db itself actually)
 `//TODO: I forgot to put that sync interval into the config. I should do that.`
 
 Also there's a menu item that triggers sync when clicked. Pretty simple :)
+
+## Web Application
+
+`To be written.`
 
 #### Well that's about it. Have fun.
