@@ -316,7 +316,7 @@ namespace MultipleCountdown
 
         private enum MessageTypes { Error, Information, Warning }
         DateTime messageDisplayedTime = DateTime.MinValue;
-        int minimumMessageDisplayInSeconds = 2;
+        int minimumMessageDisplayInSeconds = 1;
         private void DisplayMessage(MessageTypes messageType, string messageText)
         {
             switch (messageType)
@@ -335,7 +335,7 @@ namespace MultipleCountdown
             }
             changeMessageLabelText(messageText);
             messageDisplayedTime = DateTime.Now;
-            lblMessage.Visible = true;
+            toggleMessageLabel(true);
         }
         private void HideMessage()
         {
@@ -345,7 +345,7 @@ namespace MultipleCountdown
                 hider.Start();
             }else
             {
-                hideMessageLabel();
+                toggleMessageLabel(false);
             }
         }
         private void hideMessageAsync()
@@ -366,17 +366,17 @@ namespace MultipleCountdown
                 lblMessage.Text = text;
             }
         }
-        delegate void hideMessageLabelCallback();
-        private void hideMessageLabel()
+        delegate void toggleMessageLabelCallback(bool visible);
+        private void toggleMessageLabel(bool visible)
         {
             if (lblMessage.InvokeRequired)
             {
-                hideMessageLabelCallback d = new hideMessageLabelCallback(hideMessageLabel);
+                toggleMessageLabelCallback d = new toggleMessageLabelCallback(toggleMessageLabel);
                 this.Invoke(d, new object[] { });
             }
             else
             {
-                lblMessage.Visible = false;
+                lblMessage.Visible = visible;
             }
         }
 
