@@ -36,6 +36,7 @@ namespace Business.LogicalOperations
                 foreach (var item in itemsNotUpToDateInDB)
                 {
                     cdata.UpdateCountdown(item);
+                    newListForScreen.AddRange(itemsNotUpToDateInDB);
                 }
 
                 if (itemsNotOnScreen != null && itemsNotOnScreen.Count > 0)
