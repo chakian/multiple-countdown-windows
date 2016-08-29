@@ -372,7 +372,7 @@ namespace MultipleCountdown
             if (lblMessage.InvokeRequired)
             {
                 toggleMessageLabelCallback d = new toggleMessageLabelCallback(toggleMessageLabel);
-                this.Invoke(d, new object[] { });
+                this.Invoke(d, new object[] { visible });
             }
             else
             {
@@ -415,19 +415,12 @@ namespace MultipleCountdown
             StartSynchronization();
         }
 
-        private void errorToolStripMenuItem_Click(object sender, EventArgs e)
+        private void cmbCountdownName_KeyDown(object sender, KeyEventArgs e)
         {
-            DisplayMessage(MessageTypes.Error, "this is error!");
-        }
-
-        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void warningToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DisplayMessage(MessageTypes.Warning, "i'm warning ya");
+            if(e.KeyCode == Keys.Enter)
+            {
+                btnAddCountdown_Click(sender, e);
+            }
         }
     }
 
