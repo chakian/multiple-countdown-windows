@@ -13,37 +13,47 @@ namespace Business.LogicalOperations
         {
             List<CountdownStructure> newListForScreen;
 
-            CountdownData cdata = new CountdownData();
-            List<CountdownStructure> ListInDB = cdata.GetAllCountdownsOfUser(loggedInUser).ToList();
-            List<CountdownStructure> ListOnScreen = listOnScreen.ToList();
-
-            RemoveEqualEntriesFromLists(ListOnScreen, ListInDB, out newListForScreen);
-            
-            var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListOnScreen, ListInDB);
-            var itemsNotInDB = getItemsThatDontExistInDB(ListInDB, ListOnScreen);
-            var itemsNotUpToDateOnScreen = getItemsThatAreOutdatedOnScreen(ListOnScreen, ListInDB);
-            var itemsNotUpToDateInDB = getItemsThatAreOutdatedInDB(ListInDB, ListOnScreen);
-
-            //insert countdowns that didn't exist in db into database
-            foreach (var item in itemsNotInDB)
+            try
             {
-                cdata.InsertCountdown(item);
-                newListForScreen.Add(item);
+                CountdownData cdata = new CountdownData();
+                List<CountdownStructure> ListInDB = cdata.GetAllCountdownsOfUser(loggedInUser).ToList();
+                List<CountdownStructure> ListOnScreen = listOnScreen.ToList();
+
+                RemoveEqualEntriesFromLists(ListOnScreen, ListInDB, out newListForScreen);
+
+                var itemsNotOnScreen = getItemsThatDontExistOnScreen(ListOnScreen, ListInDB);
+                var itemsNotInDB = getItemsThatDontExistInDB(ListInDB, ListOnScreen);
+                var itemsNotUpToDateOnScreen = getItemsThatAreOutdatedOnScreen(ListOnScreen, ListInDB);
+                var itemsNotUpToDateInDB = getItemsThatAreOutdatedInDB(ListInDB, ListOnScreen);
+
+                //insert countdowns that didn't exist in db into database
+                foreach (var item in itemsNotInDB)
+                {
+                    cdata.InsertCountdown(item);
+                    newListForScreen.Add(item);
+                }
+                //update countdowns
+                foreach (var item in itemsNotUpToDateInDB)
+                {
+                    cdata.UpdateCountdown(item);
+                    newListForScreen.AddRange(itemsNotUpToDateInDB);
+                }
+
+                if (itemsNotOnScreen != null && itemsNotOnScreen.Count > 0)
+                {
+                    newListForScreen.AddRange(itemsNotOnScreen);
+                }
+
+                if (itemsNotUpToDateOnScreen != null && itemsNotUpToDateOnScreen.Count > 0)
+                {
+                    newListForScreen.AddRange(itemsNotUpToDateOnScreen.GetOnlyOngoingActiveCountdowns());
+                }
             }
-            //update countdowns
-            foreach (var item in itemsNotUpToDateInDB)
+            catch(Exception ex)
             {
-                cdata.UpdateCountdown(item);
-            }
+                //TODO: Log
 
-            if(itemsNotOnScreen != null && itemsNotOnScreen.Count > 0)
-            {
-                newListForScreen.AddRange(itemsNotOnScreen);
-            }
-
-            if (itemsNotUpToDateOnScreen != null && itemsNotUpToDateOnScreen.Count > 0)
-            {
-                newListForScreen.AddRange(itemsNotUpToDateOnScreen.GetOnlyOngoingActiveCountdowns());
+                newListForScreen = listOnScreen;
             }
 
             return newListForScreen;

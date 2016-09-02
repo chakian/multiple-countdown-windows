@@ -316,7 +316,7 @@ namespace MultipleCountdown
 
         private enum MessageTypes { Error, Information, Warning }
         DateTime messageDisplayedTime = DateTime.MinValue;
-        int minimumMessageDisplayInSeconds = 2;
+        int minimumMessageDisplayInSeconds = 1;
         private void DisplayMessage(MessageTypes messageType, string messageText)
         {
             switch (messageType)
@@ -335,7 +335,7 @@ namespace MultipleCountdown
             }
             changeMessageLabelText(messageText);
             messageDisplayedTime = DateTime.Now;
-            lblMessage.Visible = true;
+            toggleMessageLabel(true);
         }
         private void HideMessage()
         {
@@ -345,7 +345,7 @@ namespace MultipleCountdown
                 hider.Start();
             }else
             {
-                hideMessageLabel();
+                toggleMessageLabel(false);
             }
         }
         private void hideMessageAsync()
@@ -366,17 +366,17 @@ namespace MultipleCountdown
                 lblMessage.Text = text;
             }
         }
-        delegate void hideMessageLabelCallback();
-        private void hideMessageLabel()
+        delegate void toggleMessageLabelCallback(bool visible);
+        private void toggleMessageLabel(bool visible)
         {
             if (lblMessage.InvokeRequired)
             {
-                hideMessageLabelCallback d = new hideMessageLabelCallback(hideMessageLabel);
-                this.Invoke(d, new object[] { });
+                toggleMessageLabelCallback d = new toggleMessageLabelCallback(toggleMessageLabel);
+                this.Invoke(d, new object[] { visible });
             }
             else
             {
-                lblMessage.Visible = false;
+                lblMessage.Visible = visible;
             }
         }
 
@@ -415,19 +415,12 @@ namespace MultipleCountdown
             StartSynchronization();
         }
 
-        private void errorToolStripMenuItem_Click(object sender, EventArgs e)
+        private void cmbCountdownName_KeyDown(object sender, KeyEventArgs e)
         {
-            DisplayMessage(MessageTypes.Error, "this is error!");
-        }
-
-        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void warningToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DisplayMessage(MessageTypes.Warning, "i'm warning ya");
+            if(e.KeyCode == Keys.Enter)
+            {
+                btnAddCountdown_Click(sender, e);
+            }
         }
     }
 

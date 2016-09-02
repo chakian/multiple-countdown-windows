@@ -60,6 +60,12 @@
     <Compile Include="AlertForm.Designer.cs">
       <DependentUpon>AlertForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="AlterCountdownTime.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AlterCountdownTime.Designer.cs">
+      <DependentUpon>AlterCountdownTime.cs</DependentUpon>
+    </Compile>
     <Compile Include="Countdown.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,6 +93,9 @@
     </Compile>
     <EmbeddedResource Include="AlertForm.resx">
       <DependentUpon>AlertForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AlterCountdownTime.resx">
+      <DependentUpon>AlterCountdownTime.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Countdown.resx">
       <DependentUpon>Countdown.cs</DependentUpon>
