@@ -49,6 +49,11 @@ namespace Business.Entities
             TotalSeconds = Math.Floor((double)(EndTimeUtc - DateTime.UtcNow).TotalSeconds);
             remainingTime.TickingSeconds = TotalSeconds;
         }
+
+        public void UpdateRemainingTime()
+        {
+            remainingTime.TickingSeconds = Math.Floor((double)(EndTimeUtc - DateTime.UtcNow).TotalSeconds);
+        }
         
         public bool IsInProgress { get; set; }
         

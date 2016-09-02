@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System.IO;
 using Business.Entities;
+using System.Diagnostics;
 
 namespace MultipleCountdown
 {
@@ -91,6 +92,7 @@ namespace MultipleCountdown
             CountdownEssentials.IsInProgress = true;
             CountdownEssentials.SetTotalSeconds(GetSecondsFromTextBoxes());
             timer1.Enabled = true;
+            RemainingTimeLastUpdated = DateTime.Now;
             btnStartStop.Text = "Stop";
             lblEndTime.Text = string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"));
             toggleTextboxEditable(false);
@@ -125,11 +127,18 @@ namespace MultipleCountdown
             startSyncInParent();
         }
 
+        int UpdateRemainingTimeInterval = 30; //seconds
+        DateTime RemainingTimeLastUpdated;
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (CountdownEssentials.remainingTime.TickingSeconds > 0)
             {
                 CountdownEssentials.remainingTime.TickingSeconds--;
+                if((DateTime.Now - RemainingTimeLastUpdated).TotalSeconds >= UpdateRemainingTimeInterval)
+                {
+                    CountdownEssentials.UpdateRemainingTime();
+                    RemainingTimeLastUpdated = DateTime.Now;
+                }
                 SetTextBoxValuesFromSeconds();
             }
             else
