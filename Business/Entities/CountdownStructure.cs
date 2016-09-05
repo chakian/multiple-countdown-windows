@@ -12,7 +12,7 @@ namespace Business.Entities
             SetEndTimeUtc(DateTime.UtcNow);
             IsInProgress = false;
             IsDeleted = false;
-            UpdateTimeUtc = DateTime.UtcNow;
+            UpdatedNow();
         }
         public CountdownStructure(string title, double totalSeconds)
             : this()
@@ -25,6 +25,11 @@ namespace Business.Entities
         {
             Title = title;
             SetEndTimeUtc(endTimeUtc);
+        }
+
+        public void UpdatedNow()
+        {
+            UpdateTimeUtc = DateTime.UtcNow;
         }
 
         #region database properties
@@ -43,6 +48,11 @@ namespace Business.Entities
             EndTimeUtc = endTimeUtc;
             TotalSeconds = Math.Floor((double)(EndTimeUtc - DateTime.UtcNow).TotalSeconds);
             remainingTime.TickingSeconds = TotalSeconds;
+        }
+
+        public void UpdateRemainingTime()
+        {
+            remainingTime.TickingSeconds = Math.Floor((double)(EndTimeUtc - DateTime.UtcNow).TotalSeconds);
         }
         
         public bool IsInProgress { get; set; }

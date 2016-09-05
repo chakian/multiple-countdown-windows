@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System.IO;
 using Business.Entities;
+using System.Diagnostics;
 
 namespace MultipleCountdown
 {
@@ -60,11 +61,15 @@ namespace MultipleCountdown
 
         private double GetSecondsFromTextBoxes()
         {
-            double day, hour, minute, second;
-            if (double.TryParse(tbDay.Text.Trim(), out day) == false) day = 0;
-            if (double.TryParse(tbHour.Text.Trim(), out hour) == false) hour = 0;
-            if (double.TryParse(tbMinute.Text.Trim(), out minute) == false) minute = 0;
-            if (double.TryParse(tbSecond.Text.Trim(), out second) == false) second = 0;
+            int day, hour, minute, second;
+            if (int.TryParse(tbDay.Text.Trim(), out day) == false) day = 0;
+            if (int.TryParse(tbHour.Text.Trim(), out hour) == false) hour = 0;
+            if (int.TryParse(tbMinute.Text.Trim(), out minute) == false) minute = 0;
+            if (int.TryParse(tbSecond.Text.Trim(), out second) == false) second = 0;
+            return GetTotalSeconds(day, hour, minute, second);
+        }
+        private double GetTotalSeconds(int day, int hour, int minute, int second)
+        {
             return (day * 24 * 60 * 60) + (hour * 60 * 60) + (minute * 60) + (second);
         }
 
@@ -87,6 +92,7 @@ namespace MultipleCountdown
             CountdownEssentials.IsInProgress = true;
             CountdownEssentials.SetTotalSeconds(GetSecondsFromTextBoxes());
             timer1.Enabled = true;
+            RemainingTimeLastUpdated = DateTime.Now;
             btnStartStop.Text = "Stop";
             lblEndTime.Text = string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"));
             toggleTextboxEditable(false);
@@ -121,11 +127,18 @@ namespace MultipleCountdown
             startSyncInParent();
         }
 
+        int UpdateRemainingTimeInterval = 30; //seconds
+        DateTime RemainingTimeLastUpdated;
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (CountdownEssentials.remainingTime.TickingSeconds > 0)
             {
                 CountdownEssentials.remainingTime.TickingSeconds--;
+                if((DateTime.Now - RemainingTimeLastUpdated).TotalSeconds >= UpdateRemainingTimeInterval)
+                {
+                    CountdownEssentials.UpdateRemainingTime();
+                    RemainingTimeLastUpdated = DateTime.Now;
+                }
                 SetTextBoxValuesFromSeconds();
             }
             else
@@ -156,12 +169,40 @@ namespace MultipleCountdown
 
         void startSyncInParent()
         {
-            CountdownEssentials.UpdateTimeUtc = DateTime.UtcNow;
+            CountdownEssentials.UpdatedNow();
             //trigger synchronization
             if (Parent != null && Parent.Parent != null)
             {
                 ((Countdown)Parent.Parent).StartSynchronization();
             }
+        }
+
+        private void btnChangeRemainingTime_Click(object sender, EventArgs e)
+        {
+            AlterCountdownTime alterForm = new AlterCountdownTime(this);
+
+            alterForm.ShowDialog();
+        }
+        public void ChangeTime(int day, int hour, int minute, int second)
+        {
+            double totalSeconds = GetTotalSeconds(day, hour, minute, second);
+            CountdownEssentials.SetTotalSeconds(totalSeconds);
+
+            CountdownEssentials.UpdatedNow();
+        }
+        public void AddTime(int day, int hour, int minute, int second)
+        {
+            double totalSeconds = GetTotalSeconds(day, hour, minute, second);
+            CountdownEssentials.SetTotalSeconds(CountdownEssentials.remainingTime.TickingSeconds + totalSeconds);
+
+            CountdownEssentials.UpdatedNow();
+        }
+        public void ReduceTime(int day, int hour, int minute, int second)
+        {
+            double totalSeconds = GetTotalSeconds(day, hour, minute, second);
+            CountdownEssentials.SetTotalSeconds(CountdownEssentials.remainingTime.TickingSeconds - totalSeconds);
+
+            CountdownEssentials.UpdatedNow();
         }
     }
 }
