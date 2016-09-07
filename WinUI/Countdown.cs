@@ -17,7 +17,16 @@ namespace MultipleCountdown
 {
     public partial class Countdown : Form
     {
-        private int _loggedInUser = 0;
+        enum MessageTypes { Error, Information, Warning }
+
+        int _loggedInUser = 0;
+        bool IsSynchronizing = false;
+        DateTime LastSynchronizeTime = DateTime.Now;
+        int SynchronizeIntervalInSeconds = Properties.Settings.Default.SynchronizeIntervalInSeconds;
+        List<ucCountdown> countdownList;
+        DateTime messageDisplayedTime = DateTime.MinValue;
+        int minimumMessageDisplayInSeconds = 1;
+
         public int LoggedInUser
         {
             get
@@ -37,8 +46,7 @@ namespace MultipleCountdown
                 return LoggedInUser > 0;
             }
         }
-        List<ucCountdown> countdownList;
-
+        
         public Countdown()
         {
             InitializeComponent();
@@ -253,9 +261,6 @@ namespace MultipleCountdown
         //    pnlCountdowns.AutoScroll = true;
         //}
 
-        private bool IsSynchronizing = false;
-        private DateTime LastSynchronizeTime = DateTime.Now;
-        private int SynchronizeIntervalInSeconds = 3 * 60; //every 3 minutes
         public void StartSynchronization()
         {
             if (IsSynchronizing == false && isLoggedIn)
@@ -313,10 +318,7 @@ namespace MultipleCountdown
             }
         }
         #endregion Countdown User Control operations
-
-        private enum MessageTypes { Error, Information, Warning }
-        DateTime messageDisplayedTime = DateTime.MinValue;
-        int minimumMessageDisplayInSeconds = 1;
+        
         private void DisplayMessage(MessageTypes messageType, string messageText)
         {
             switch (messageType)

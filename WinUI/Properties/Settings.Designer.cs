@@ -22,5 +22,32 @@ namespace MultipleCountdown.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("180")]
+        public int SynchronizeIntervalInSeconds {
+            get {
+                return ((int)(this["SynchronizeIntervalInSeconds"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        public int UpdateRemainingTimeIntervalInSeconds {
+            get {
+                return ((int)(this["UpdateRemainingTimeIntervalInSeconds"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SendNotificationEmailWhenComplete {
+            get {
+                return ((bool)(this["SendNotificationEmailWhenComplete"]));
+            }
+        }
     }
 }

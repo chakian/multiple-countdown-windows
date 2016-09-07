@@ -8,7 +8,12 @@ namespace MultipleCountdown
 {
     public partial class ucCountdown : UserControl
     {
+        int UpdateRemainingTimeInterval = Properties.Settings.Default.UpdateRemainingTimeIntervalInSeconds;
+        DateTime RemainingTimeLastUpdated;
+        bool sendNotificationEmailWhenComplete = Properties.Settings.Default.SendNotificationEmailWhenComplete;
+
         public CountdownStructure CountdownEssentials { get; private set; }
+
         public void SetCountdownEssentials(CountdownStructure cd)
         {
             CountdownEssentials = cd;
@@ -126,9 +131,7 @@ namespace MultipleCountdown
 
             startSyncInParent();
         }
-
-        int UpdateRemainingTimeInterval = 30; //seconds
-        DateTime RemainingTimeLastUpdated;
+        
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (CountdownEssentials.remainingTime.TickingSeconds > 0)
@@ -144,6 +147,11 @@ namespace MultipleCountdown
             else
             {
                 switchTimer();
+
+                if (sendNotificationEmailWhenComplete)
+                {
+                    //TODO: Send notification email here
+                }
 
                 try
                 {
