@@ -23,30 +23,39 @@ namespace MultipleCountdown.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("180")]
         public int SynchronizeIntervalInSeconds {
             get {
                 return ((int)(this["SynchronizeIntervalInSeconds"]));
             }
+            set {
+                this["SynchronizeIntervalInSeconds"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int UpdateRemainingTimeIntervalInSeconds {
             get {
                 return ((int)(this["UpdateRemainingTimeIntervalInSeconds"]));
             }
+            set {
+                this["UpdateRemainingTimeIntervalInSeconds"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool SendNotificationEmailWhenComplete {
             get {
                 return ((bool)(this["SendNotificationEmailWhenComplete"]));
+            }
+            set {
+                this["SendNotificationEmailWhenComplete"] = value;
             }
         }
     }

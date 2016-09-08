@@ -8,9 +8,9 @@ namespace MultipleCountdown
 {
     public partial class ucCountdown : UserControl
     {
-        int UpdateRemainingTimeInterval = Properties.Settings.Default.UpdateRemainingTimeIntervalInSeconds;
+        int UpdateRemainingTimeInterval;
         DateTime RemainingTimeLastUpdated;
-        bool sendNotificationEmailWhenComplete = Properties.Settings.Default.SendNotificationEmailWhenComplete;
+        bool sendNotificationEmailWhenComplete;
 
         public CountdownStructure CountdownEssentials { get; private set; }
 
@@ -18,6 +18,12 @@ namespace MultipleCountdown
         {
             CountdownEssentials = cd;
             InitializeCountdown();
+        }
+
+        public void ReadSettingsValues()
+        {
+            UpdateRemainingTimeInterval = Properties.Settings.Default.UpdateRemainingTimeIntervalInSeconds;
+            sendNotificationEmailWhenComplete = Properties.Settings.Default.SendNotificationEmailWhenComplete;
         }
         
         public ucCountdown()

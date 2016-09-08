@@ -22,7 +22,7 @@ namespace MultipleCountdown
         int _loggedInUser = 0;
         bool IsSynchronizing = false;
         DateTime LastSynchronizeTime = DateTime.Now;
-        int SynchronizeIntervalInSeconds = Properties.Settings.Default.SynchronizeIntervalInSeconds;
+        int SynchronizeIntervalInSeconds;
         List<ucCountdown> countdownList;
         DateTime messageDisplayedTime = DateTime.MinValue;
         int minimumMessageDisplayInSeconds = 1;
@@ -50,6 +50,7 @@ namespace MultipleCountdown
         public Countdown()
         {
             InitializeComponent();
+
             countdownList = new List<ucCountdown>();
             
             tmrProgressState.Enabled = true;
@@ -88,6 +89,8 @@ namespace MultipleCountdown
             //    pnlCountdowns.VerticalScroll.Maximum = 3;
             //}
             //pnlCountdowns.AutoScroll = true;
+
+            TriggerSettingsChanged();
         }
         
         #region Login Logout operations
@@ -97,12 +100,14 @@ namespace MultipleCountdown
             {
                 loginToolStripMenuItem.Visible = false;
                 logoutToolStripMenuItem.Visible = true;
+                settingsToolStripMenuItem.Visible = true;
             }
             else
             {
                 loginToolStripMenuItem.Visible = true;
                 logoutToolStripMenuItem.Visible = false;
                 mainToolStripMenuItem.Text = "User";
+                settingsToolStripMenuItem.Visible = false;
             }
         }
 
@@ -423,6 +428,19 @@ namespace MultipleCountdown
             {
                 btnAddCountdown_Click(sender, e);
             }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ChangeSettings settings = new ChangeSettings(this);
+            settings.ShowDialog(this);
+        }
+
+        public void TriggerSettingsChanged()
+        {
+            SynchronizeIntervalInSeconds = Properties.Settings.Default.SynchronizeIntervalInSeconds;
+
+            countdownList.ForEach(c => c.ReadSettingsValues());
         }
     }
 

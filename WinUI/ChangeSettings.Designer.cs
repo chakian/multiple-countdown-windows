@@ -52,6 +52,7 @@
             this.label1.Size = new System.Drawing.Size(204, 26);
             this.label1.TabIndex = 10;
             this.label1.Text = "Synchronize interval (seconds)";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // chkSendEmail
             // 
@@ -70,6 +71,7 @@
             this.label3.Size = new System.Drawing.Size(204, 26);
             this.label3.TabIndex = 16;
             this.label3.Text = "Send notification email";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // button1
             // 
@@ -79,6 +81,7 @@
             this.button1.TabIndex = 17;
             this.button1.Text = "Save";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // ChangeSettings
             // 
