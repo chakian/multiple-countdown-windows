@@ -156,7 +156,7 @@ namespace MultipleCountdown
 
                 if (sendNotificationEmailWhenComplete)
                 {
-                    //TODO: Send notification email here
+                    SendEmail();
                 }
 
                 try
@@ -178,6 +178,17 @@ namespace MultipleCountdown
                 alert.Left = 0;
                 alert.TopMost = true;
                 alert.ShowDialog();
+            }
+        }
+
+        void SendEmail()
+        {
+            try
+            {
+
+            }catch(Exception ex)
+            {
+                //TODO: Logging logging
             }
         }
 
