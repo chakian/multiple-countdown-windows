@@ -5,26 +5,32 @@
     <Setting Name="SynchronizeIntervalInSeconds" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">180</Value>
     </Setting>
-    <Setting Name="UpdateRemainingTimeIntervalInSeconds" Type="System.Int32" Scope="User">
+    <Setting Name="UpdateRemainingTimeIntervalInSeconds" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">30</Value>
     </Setting>
     <Setting Name="SendNotificationEmailWhenComplete" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="EmailSmtpServer" Type="System.String" Scope="Application">
+    <Setting Name="EmailSmtpServer" Type="System.String" Scope="User">
       <Value Profile="(Default)">smtp.gmail.com</Value>
     </Setting>
-    <Setting Name="EmailSmtpPortNumber" Type="System.Int32" Scope="Application">
+    <Setting Name="EmailSmtpPortNumber" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">587</Value>
     </Setting>
-    <Setting Name="EmailSmtpRequiresSSL" Type="System.Boolean" Scope="Application">
+    <Setting Name="EmailSmtpRequiresSSL" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="EmailFromAddress" Type="System.String" Scope="Application">
-      <Value Profile="(Default)" />
+    <Setting Name="EmailFromAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">somebody@gmail.com</Value>
     </Setting>
-    <Setting Name="EmailFromPassword" Type="System.String" Scope="Application">
-      <Value Profile="(Default)" />
+    <Setting Name="EmailFromPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">somebodys_password</Value>
+    </Setting>
+    <Setting Name="EmailToAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">somebodyelse@gmail.com</Value>
+    </Setting>
+    <Setting Name="AutoSynchronize" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

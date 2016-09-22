@@ -22,6 +22,7 @@ namespace MultipleCountdown
         int _loggedInUser = 0;
         bool IsSynchronizing = false;
         DateTime LastSynchronizeTime = DateTime.Now;
+        bool IsAutoSyncOn;
         int SynchronizeIntervalInSeconds;
         List<ucCountdown> countdownList;
         DateTime messageDisplayedTime = DateTime.MinValue;
@@ -132,7 +133,7 @@ namespace MultipleCountdown
             LoggedInUser = userID;
             RegistryHelper.WriteRegistryNode(RegistryHelper.MCNode_UserID, EncryptionHelper.Encrypt(userID.ToString()));
             mainToolStripMenuItem.Text = "User: " + username;
-            StartSynchronization();
+            StartAutoSync();
             DoLoginLogoutOperations();
         }
 
@@ -266,6 +267,14 @@ namespace MultipleCountdown
         //    pnlCountdowns.AutoScroll = true;
         //}
 
+        public void StartAutoSync()
+        {
+            if (IsAutoSyncOn && (DateTime.Now - LastSynchronizeTime).TotalSeconds >= SynchronizeIntervalInSeconds)
+            {
+                StartSynchronization();
+            }
+        }
+
         public void StartSynchronization()
         {
             if (IsSynchronizing == false && isLoggedIn)
@@ -397,8 +406,8 @@ namespace MultipleCountdown
                 string _title = "";
                 if (_struct.remainingTime.Days > 0) _title += _struct.remainingTime.Days.ToString() + "d. ";
                 if (_struct.remainingTime.Hours > 0) _title += _struct.remainingTime.Hours.ToString() + "h. ";
-                _title += string.Format("{0}:{1}", _struct.remainingTime.Minutes, _struct.remainingTime.Seconds);
-
+                _title += string.Format("{0}:{1} - {2}", _struct.remainingTime.Minutes.ToString().PadLeft(2,'0'), _struct.remainingTime.Seconds.ToString().PadLeft(2, '0'), _struct.Title);
+                
                 this.Text = _title;
             }
             else
@@ -407,10 +416,7 @@ namespace MultipleCountdown
             }
 
             //synchronize data
-            if((DateTime.Now - LastSynchronizeTime).TotalSeconds >= SynchronizeIntervalInSeconds)
-            {
-                StartSynchronization();
-            }
+            StartAutoSync();
             
             //Taskbar.ProgressBar
             //this.
@@ -438,6 +444,7 @@ namespace MultipleCountdown
 
         public void TriggerSettingsChanged()
         {
+            IsAutoSyncOn = Properties.Settings.Default.AutoSynchronize;
             SynchronizeIntervalInSeconds = Properties.Settings.Default.SynchronizeIntervalInSeconds;
 
             countdownList.ForEach(c => c.ReadSettingsValues());

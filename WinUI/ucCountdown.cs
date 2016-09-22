@@ -3,6 +3,10 @@ using System.Windows.Forms;
 using System.IO;
 using Business.Entities;
 using System.Diagnostics;
+using System.Net.Mail;
+using System.Net;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace MultipleCountdown
 {
@@ -181,14 +185,64 @@ namespace MultipleCountdown
             }
         }
 
-        void SendEmail()
+        async void SendEmail()
+        {
+            string smtpAddress = Properties.Settings.Default.EmailSmtpServer;
+            int portNumber = Properties.Settings.Default.EmailSmtpPortNumber;
+            bool enableSSL = Properties.Settings.Default.EmailSmtpRequiresSSL;
+
+            string emailFrom = Properties.Settings.Default.EmailFromAddress;
+            string password = Properties.Settings.Default.EmailFromPassword;
+            string emailTo = Properties.Settings.Default.EmailToAddress;
+            string subject = string.Format("Countdown Finished - {0}", CountdownEssentials.Title);
+            string body = string.Format("Your countdown with title '{0}' has finished. <br/>End time: {1}", CountdownEssentials.Title, CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd MMMM yyyy - HH:mm:ss"));
+
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress(emailFrom);
+                    mail.To.Add(emailTo);
+                    mail.Subject = subject;
+                    mail.Body = body;
+                    // Can set to false, if you are sending pure text.
+                    mail.IsBodyHtml = true;
+
+                    //mail.Attachments.Add(new Attachment("C:\\SomeFile.txt"));
+                    //mail.Attachments.Add(new Attachment("C:\\SomeZip.zip"));
+
+                    using (SmtpClient smtp = new SmtpClient(smtpAddress, portNumber))
+                    {
+                        smtp.Credentials = new NetworkCredential(emailFrom, password);
+                        smtp.EnableSsl = enableSSL;
+                        bool result = await sendMailAsync(smtp, mail);
+                        if(result == true)
+                        {
+                            //TODO: Probably we'll do nothing here
+                        }else
+                        {
+                            //TODO: There was an error but we'll probably just do nothing here too
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                //TODO: Logging logging
+            }
+        }
+
+        async Task<bool> sendMailAsync(SmtpClient smtp, MailMessage mail)
         {
             try
             {
-
-            }catch(Exception ex)
+                smtp.Send(mail);
+                return true;
+            }
+            catch (Exception ex)
             {
                 //TODO: Logging logging
+                return false;
             }
         }
 
@@ -198,7 +252,7 @@ namespace MultipleCountdown
             //trigger synchronization
             if (Parent != null && Parent.Parent != null)
             {
-                ((Countdown)Parent.Parent).StartSynchronization();
+                ((Countdown)Parent.Parent).StartAutoSync();
             }
         }
 

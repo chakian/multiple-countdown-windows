@@ -35,15 +35,12 @@ namespace MultipleCountdown.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int UpdateRemainingTimeIntervalInSeconds {
             get {
                 return ((int)(this["UpdateRemainingTimeIntervalInSeconds"]));
-            }
-            set {
-                this["UpdateRemainingTimeIntervalInSeconds"] = value;
             }
         }
         
@@ -59,48 +56,87 @@ namespace MultipleCountdown.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("smtp.gmail.com")]
         public string EmailSmtpServer {
             get {
                 return ((string)(this["EmailSmtpServer"]));
             }
+            set {
+                this["EmailSmtpServer"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("587")]
         public int EmailSmtpPortNumber {
             get {
                 return ((int)(this["EmailSmtpPortNumber"]));
             }
+            set {
+                this["EmailSmtpPortNumber"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool EmailSmtpRequiresSSL {
             get {
                 return ((bool)(this["EmailSmtpRequiresSSL"]));
             }
+            set {
+                this["EmailSmtpRequiresSSL"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("somebody@gmail.com")]
         public string EmailFromAddress {
             get {
                 return ((string)(this["EmailFromAddress"]));
             }
+            set {
+                this["EmailFromAddress"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("somebodys_password")]
         public string EmailFromPassword {
             get {
                 return ((string)(this["EmailFromPassword"]));
+            }
+            set {
+                this["EmailFromPassword"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("somebodyelse@gmail.com")]
+        public string EmailToAddress {
+            get {
+                return ((string)(this["EmailToAddress"]));
+            }
+            set {
+                this["EmailToAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AutoSynchronize {
+            get {
+                return ((bool)(this["AutoSynchronize"]));
+            }
+            set {
+                this["AutoSynchronize"] = value;
             }
         }
     }
