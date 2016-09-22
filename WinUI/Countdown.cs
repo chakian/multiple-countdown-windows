@@ -403,10 +403,11 @@ namespace MultipleCountdown
             if(earliestCountdown != null)
             {
                 CountdownStructure _struct = earliestCountdown.CountdownEssentials;
-                string _title = "";
+                string _title = _struct.Title + " - ";
                 if (_struct.remainingTime.Days > 0) _title += _struct.remainingTime.Days.ToString() + "d. ";
                 if (_struct.remainingTime.Hours > 0) _title += _struct.remainingTime.Hours.ToString() + "h. ";
-                _title += string.Format("{0}:{1} - {2}", _struct.remainingTime.Minutes.ToString().PadLeft(2,'0'), _struct.remainingTime.Seconds.ToString().PadLeft(2, '0'), _struct.Title);
+                if (_struct.remainingTime.Minutes > 0) _title += _struct.remainingTime.Minutes.ToString() + "m. ";
+                _title += _struct.remainingTime.Seconds.ToString() + "s.";
                 
                 this.Text = _title;
             }

@@ -30,7 +30,7 @@
       <Value Profile="(Default)">somebodyelse@gmail.com</Value>
     </Setting>
     <Setting Name="AutoSynchronize" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>
