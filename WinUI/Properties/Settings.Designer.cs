@@ -22,5 +22,122 @@ namespace MultipleCountdown.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("180")]
+        public int SynchronizeIntervalInSeconds {
+            get {
+                return ((int)(this["SynchronizeIntervalInSeconds"]));
+            }
+            set {
+                this["SynchronizeIntervalInSeconds"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        public int UpdateRemainingTimeIntervalInSeconds {
+            get {
+                return ((int)(this["UpdateRemainingTimeIntervalInSeconds"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SendNotificationEmailWhenComplete {
+            get {
+                return ((bool)(this["SendNotificationEmailWhenComplete"]));
+            }
+            set {
+                this["SendNotificationEmailWhenComplete"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("smtp.gmail.com")]
+        public string EmailSmtpServer {
+            get {
+                return ((string)(this["EmailSmtpServer"]));
+            }
+            set {
+                this["EmailSmtpServer"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("587")]
+        public int EmailSmtpPortNumber {
+            get {
+                return ((int)(this["EmailSmtpPortNumber"]));
+            }
+            set {
+                this["EmailSmtpPortNumber"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool EmailSmtpRequiresSSL {
+            get {
+                return ((bool)(this["EmailSmtpRequiresSSL"]));
+            }
+            set {
+                this["EmailSmtpRequiresSSL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("somebody@gmail.com")]
+        public string EmailFromAddress {
+            get {
+                return ((string)(this["EmailFromAddress"]));
+            }
+            set {
+                this["EmailFromAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("somebodys_password")]
+        public string EmailFromPassword {
+            get {
+                return ((string)(this["EmailFromPassword"]));
+            }
+            set {
+                this["EmailFromPassword"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("somebodyelse@gmail.com")]
+        public string EmailToAddress {
+            get {
+                return ((string)(this["EmailToAddress"]));
+            }
+            set {
+                this["EmailToAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoSynchronize {
+            get {
+                return ((bool)(this["AutoSynchronize"]));
+            }
+            set {
+                this["AutoSynchronize"] = value;
+            }
+        }
     }
 }

@@ -3,16 +3,31 @@ using System.Windows.Forms;
 using System.IO;
 using Business.Entities;
 using System.Diagnostics;
+using System.Net.Mail;
+using System.Net;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace MultipleCountdown
 {
     public partial class ucCountdown : UserControl
     {
+        int UpdateRemainingTimeInterval;
+        DateTime RemainingTimeLastUpdated;
+        bool sendNotificationEmailWhenComplete;
+
         public CountdownStructure CountdownEssentials { get; private set; }
+
         public void SetCountdownEssentials(CountdownStructure cd)
         {
             CountdownEssentials = cd;
             InitializeCountdown();
+        }
+
+        public void ReadSettingsValues()
+        {
+            UpdateRemainingTimeInterval = Properties.Settings.Default.UpdateRemainingTimeIntervalInSeconds;
+            sendNotificationEmailWhenComplete = Properties.Settings.Default.SendNotificationEmailWhenComplete;
         }
         
         public ucCountdown()
@@ -20,7 +35,7 @@ namespace MultipleCountdown
             InitializeComponent();
 
             btnStartStop.Text = "Start";
-            lblEndTime.Text = string.Empty;
+            RefreshEndTimeLabelText(true);
         }
         public ucCountdown(CountdownStructure countdownEssentials)
             : this()
@@ -94,7 +109,7 @@ namespace MultipleCountdown
             timer1.Enabled = true;
             RemainingTimeLastUpdated = DateTime.Now;
             btnStartStop.Text = "Stop";
-            lblEndTime.Text = string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"));
+            RefreshEndTimeLabelText();
             toggleTextboxEditable(false);
         }
         void stopTimer()
@@ -102,7 +117,7 @@ namespace MultipleCountdown
             CountdownEssentials.IsInProgress = false;
             timer1.Enabled = false;
             btnStartStop.Text = "Start";
-            lblEndTime.Text = string.Empty;
+            RefreshEndTimeLabelText(true);
             toggleTextboxEditable(true);
         }
 
@@ -126,9 +141,7 @@ namespace MultipleCountdown
 
             startSyncInParent();
         }
-
-        int UpdateRemainingTimeInterval = 30; //seconds
-        DateTime RemainingTimeLastUpdated;
+        
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (CountdownEssentials.remainingTime.TickingSeconds > 0)
@@ -144,6 +157,11 @@ namespace MultipleCountdown
             else
             {
                 switchTimer();
+
+                if (sendNotificationEmailWhenComplete)
+                {
+                    SendEmail();
+                }
 
                 try
                 {
@@ -167,13 +185,74 @@ namespace MultipleCountdown
             }
         }
 
+        async void SendEmail()
+        {
+            string smtpAddress = Properties.Settings.Default.EmailSmtpServer;
+            int portNumber = Properties.Settings.Default.EmailSmtpPortNumber;
+            bool enableSSL = Properties.Settings.Default.EmailSmtpRequiresSSL;
+
+            string emailFrom = Properties.Settings.Default.EmailFromAddress;
+            string password = Properties.Settings.Default.EmailFromPassword;
+            string emailTo = Properties.Settings.Default.EmailToAddress;
+            string subject = string.Format("Countdown Finished - {0}", CountdownEssentials.Title);
+            string body = string.Format("Your countdown with title '{0}' has finished. <br/>End time: {1}", CountdownEssentials.Title, CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd MMMM yyyy - HH:mm:ss"));
+
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress(emailFrom);
+                    mail.To.Add(emailTo);
+                    mail.Subject = subject;
+                    mail.Body = body;
+                    // Can set to false, if you are sending pure text.
+                    mail.IsBodyHtml = true;
+
+                    //mail.Attachments.Add(new Attachment("C:\\SomeFile.txt"));
+                    //mail.Attachments.Add(new Attachment("C:\\SomeZip.zip"));
+
+                    using (SmtpClient smtp = new SmtpClient(smtpAddress, portNumber))
+                    {
+                        smtp.Credentials = new NetworkCredential(emailFrom, password);
+                        smtp.EnableSsl = enableSSL;
+                        bool result = await sendMailAsync(smtp, mail);
+                        if(result == true)
+                        {
+                            //TODO: Probably we'll do nothing here
+                        }else
+                        {
+                            //TODO: There was an error but we'll probably just do nothing here too
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                //TODO: Logging logging
+            }
+        }
+
+        async Task<bool> sendMailAsync(SmtpClient smtp, MailMessage mail)
+        {
+            try
+            {
+                smtp.Send(mail);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //TODO: Logging logging
+                return false;
+            }
+        }
+
         void startSyncInParent()
         {
             CountdownEssentials.UpdatedNow();
             //trigger synchronization
             if (Parent != null && Parent.Parent != null)
             {
-                ((Countdown)Parent.Parent).StartSynchronization();
+                ((Countdown)Parent.Parent).StartAutoSync();
             }
         }
 
@@ -183,12 +262,24 @@ namespace MultipleCountdown
 
             alterForm.ShowDialog();
         }
+
+        void RefreshEndTimeLabelText(bool clear = false)
+        {
+            string labelText = clear == false ?
+                string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd MMMM yyyy HH:mm:ss")) :
+                string.Empty;
+
+            lblEndTime.Text = labelText;
+        }
+
         public void ChangeTime(int day, int hour, int minute, int second)
         {
             double totalSeconds = GetTotalSeconds(day, hour, minute, second);
             CountdownEssentials.SetTotalSeconds(totalSeconds);
 
             CountdownEssentials.UpdatedNow();
+
+            RefreshEndTimeLabelText();
         }
         public void AddTime(int day, int hour, int minute, int second)
         {
@@ -196,6 +287,8 @@ namespace MultipleCountdown
             CountdownEssentials.SetTotalSeconds(CountdownEssentials.remainingTime.TickingSeconds + totalSeconds);
 
             CountdownEssentials.UpdatedNow();
+
+            RefreshEndTimeLabelText();
         }
         public void ReduceTime(int day, int hour, int minute, int second)
         {
@@ -203,6 +296,8 @@ namespace MultipleCountdown
             CountdownEssentials.SetTotalSeconds(CountdownEssentials.remainingTime.TickingSeconds - totalSeconds);
 
             CountdownEssentials.UpdatedNow();
+
+            RefreshEndTimeLabelText();
         }
     }
 }

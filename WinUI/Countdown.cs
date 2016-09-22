@@ -17,7 +17,17 @@ namespace MultipleCountdown
 {
     public partial class Countdown : Form
     {
-        private int _loggedInUser = 0;
+        enum MessageTypes { Error, Information, Warning }
+
+        int _loggedInUser = 0;
+        bool IsSynchronizing = false;
+        DateTime LastSynchronizeTime = DateTime.Now;
+        bool IsAutoSyncOn;
+        int SynchronizeIntervalInSeconds;
+        List<ucCountdown> countdownList;
+        DateTime messageDisplayedTime = DateTime.MinValue;
+        int minimumMessageDisplayInSeconds = 1;
+
         public int LoggedInUser
         {
             get
@@ -37,11 +47,11 @@ namespace MultipleCountdown
                 return LoggedInUser > 0;
             }
         }
-        List<ucCountdown> countdownList;
-
+        
         public Countdown()
         {
             InitializeComponent();
+
             countdownList = new List<ucCountdown>();
             
             tmrProgressState.Enabled = true;
@@ -80,6 +90,8 @@ namespace MultipleCountdown
             //    pnlCountdowns.VerticalScroll.Maximum = 3;
             //}
             //pnlCountdowns.AutoScroll = true;
+
+            TriggerSettingsChanged();
         }
         
         #region Login Logout operations
@@ -89,12 +101,14 @@ namespace MultipleCountdown
             {
                 loginToolStripMenuItem.Visible = false;
                 logoutToolStripMenuItem.Visible = true;
+                settingsToolStripMenuItem.Visible = true;
             }
             else
             {
                 loginToolStripMenuItem.Visible = true;
                 logoutToolStripMenuItem.Visible = false;
                 mainToolStripMenuItem.Text = "User";
+                settingsToolStripMenuItem.Visible = false;
             }
         }
 
@@ -119,7 +133,7 @@ namespace MultipleCountdown
             LoggedInUser = userID;
             RegistryHelper.WriteRegistryNode(RegistryHelper.MCNode_UserID, EncryptionHelper.Encrypt(userID.ToString()));
             mainToolStripMenuItem.Text = "User: " + username;
-            StartSynchronization();
+            StartAutoSync();
             DoLoginLogoutOperations();
         }
 
@@ -253,9 +267,14 @@ namespace MultipleCountdown
         //    pnlCountdowns.AutoScroll = true;
         //}
 
-        private bool IsSynchronizing = false;
-        private DateTime LastSynchronizeTime = DateTime.Now;
-        private int SynchronizeIntervalInSeconds = 3 * 60; //every 3 minutes
+        public void StartAutoSync()
+        {
+            if (IsAutoSyncOn && (DateTime.Now - LastSynchronizeTime).TotalSeconds >= SynchronizeIntervalInSeconds)
+            {
+                StartSynchronization();
+            }
+        }
+
         public void StartSynchronization()
         {
             if (IsSynchronizing == false && isLoggedIn)
@@ -313,10 +332,7 @@ namespace MultipleCountdown
             }
         }
         #endregion Countdown User Control operations
-
-        private enum MessageTypes { Error, Information, Warning }
-        DateTime messageDisplayedTime = DateTime.MinValue;
-        int minimumMessageDisplayInSeconds = 1;
+        
         private void DisplayMessage(MessageTypes messageType, string messageText)
         {
             switch (messageType)
@@ -387,11 +403,12 @@ namespace MultipleCountdown
             if(earliestCountdown != null)
             {
                 CountdownStructure _struct = earliestCountdown.CountdownEssentials;
-                string _title = "";
+                string _title = _struct.Title + " - ";
                 if (_struct.remainingTime.Days > 0) _title += _struct.remainingTime.Days.ToString() + "d. ";
                 if (_struct.remainingTime.Hours > 0) _title += _struct.remainingTime.Hours.ToString() + "h. ";
-                _title += string.Format("{0}:{1}", _struct.remainingTime.Minutes, _struct.remainingTime.Seconds);
-
+                if (_struct.remainingTime.Minutes > 0) _title += _struct.remainingTime.Minutes.ToString() + "m. ";
+                _title += _struct.remainingTime.Seconds.ToString() + "s.";
+                
                 this.Text = _title;
             }
             else
@@ -400,10 +417,7 @@ namespace MultipleCountdown
             }
 
             //synchronize data
-            if((DateTime.Now - LastSynchronizeTime).TotalSeconds >= SynchronizeIntervalInSeconds)
-            {
-                StartSynchronization();
-            }
+            StartAutoSync();
             
             //Taskbar.ProgressBar
             //this.
@@ -421,6 +435,20 @@ namespace MultipleCountdown
             {
                 btnAddCountdown_Click(sender, e);
             }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ChangeSettings settings = new ChangeSettings(this);
+            settings.ShowDialog(this);
+        }
+
+        public void TriggerSettingsChanged()
+        {
+            IsAutoSyncOn = Properties.Settings.Default.AutoSynchronize;
+            SynchronizeIntervalInSeconds = Properties.Settings.Default.SynchronizeIntervalInSeconds;
+
+            countdownList.ForEach(c => c.ReadSettingsValues());
         }
     }
 
