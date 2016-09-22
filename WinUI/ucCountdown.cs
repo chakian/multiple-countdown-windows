@@ -35,7 +35,7 @@ namespace MultipleCountdown
             InitializeComponent();
 
             btnStartStop.Text = "Start";
-            lblEndTime.Text = string.Empty;
+            RefreshEndTimeLabelText(true);
         }
         public ucCountdown(CountdownStructure countdownEssentials)
             : this()
@@ -109,7 +109,7 @@ namespace MultipleCountdown
             timer1.Enabled = true;
             RemainingTimeLastUpdated = DateTime.Now;
             btnStartStop.Text = "Stop";
-            lblEndTime.Text = string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"));
+            RefreshEndTimeLabelText();
             toggleTextboxEditable(false);
         }
         void stopTimer()
@@ -117,7 +117,7 @@ namespace MultipleCountdown
             CountdownEssentials.IsInProgress = false;
             timer1.Enabled = false;
             btnStartStop.Text = "Start";
-            lblEndTime.Text = string.Empty;
+            RefreshEndTimeLabelText(true);
             toggleTextboxEditable(true);
         }
 
@@ -262,12 +262,24 @@ namespace MultipleCountdown
 
             alterForm.ShowDialog();
         }
+
+        void RefreshEndTimeLabelText(bool clear = false)
+        {
+            string labelText = clear == false ?
+                string.Format("End Time: {0}", CountdownEssentials.EndTimeUtc.ToLocalTime().ToString("dd MMMM yyyy HH:mm:ss")) :
+                string.Empty;
+
+            lblEndTime.Text = labelText;
+        }
+
         public void ChangeTime(int day, int hour, int minute, int second)
         {
             double totalSeconds = GetTotalSeconds(day, hour, minute, second);
             CountdownEssentials.SetTotalSeconds(totalSeconds);
 
             CountdownEssentials.UpdatedNow();
+
+            RefreshEndTimeLabelText();
         }
         public void AddTime(int day, int hour, int minute, int second)
         {
@@ -275,6 +287,8 @@ namespace MultipleCountdown
             CountdownEssentials.SetTotalSeconds(CountdownEssentials.remainingTime.TickingSeconds + totalSeconds);
 
             CountdownEssentials.UpdatedNow();
+
+            RefreshEndTimeLabelText();
         }
         public void ReduceTime(int day, int hour, int minute, int second)
         {
@@ -282,6 +296,8 @@ namespace MultipleCountdown
             CountdownEssentials.SetTotalSeconds(CountdownEssentials.remainingTime.TickingSeconds - totalSeconds);
 
             CountdownEssentials.UpdatedNow();
+
+            RefreshEndTimeLabelText();
         }
     }
 }

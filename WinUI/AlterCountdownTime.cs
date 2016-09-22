@@ -79,7 +79,7 @@ namespace MultipleCountdown
             this.Close();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnReduceTime_Click(object sender, EventArgs e)
         {
             int day, hour, minute, second;
             getValuesFromTextboxes(out day, out hour, out minute, out second);
